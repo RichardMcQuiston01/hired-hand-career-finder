@@ -4,4 +4,14 @@
  * the API key never ships to the browser. Implemented in Stage 1
  * (feature/onet-client-package) — see docs/DEVELOPMENT_PLAN.md.
  */
-export {};
+export { createOnetMnmClient } from './client';
+export type {
+  OnetMnmClient,
+  OnetMnmClientOptions,
+  PaginationParams,
+  SearchCareersParams,
+  InterestProfilerQuestionsParams,
+  InterestProfilerCareersParams,
+} from './client';
+export { OnetClientError } from './errors';
+export * from './schemas';
