@@ -1,5 +1,6 @@
 import { AppShell } from '../components/AppShell';
 import { Tabs } from '../components/Tabs';
+import { CareerSearchPanel } from '../features/career-search/CareerSearchPanel';
 
 export function App() {
   return (
@@ -10,12 +11,7 @@ export function App() {
           {
             id: 'search',
             label: 'Search',
-            panel: (
-              <p>
-                Career Search placeholder — keyword search against O*NET lands in Stage 2 on{' '}
-                <code>feature/career-search</code>. See <code>docs/DEVELOPMENT_PLAN.md</code>.
-              </p>
-            ),
+            panel: <CareerSearchPanel />,
           },
           {
             id: 'browse',
