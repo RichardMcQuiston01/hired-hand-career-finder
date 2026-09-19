@@ -53,6 +53,30 @@ docs/
 Tooling: TypeScript strict mode, ESLint (Google TS Style Guide), Prettier,
 Vitest + React Testing Library + `jest-axe`, Playwright for E2E.
 
+## Branding
+
+Sourced from the Hired Hand brand's design system:
+https://claude.ai/artifact/YESibrGgC1otZwcLnTf6Kv (design tokens, voice,
+logo assets — read `project/README.md` and `project/tokens.json` there for
+the full brand book; only the subset this extension currently uses is wired
+into `apps/extension/src/index.css`).
+
+Hired Hand is the brand behind this extension and its sibling, [Job
+Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension).
+Both share **the same fixed cowhand-with-phone lockup** — the guide is
+explicit that the mark is not token-driven and must not be recolored per
+product, so Career Finder does not get its own tinted variant; the two
+extensions are told apart by name and in-product context, not by the icon.
+`apps/extension/public/icons/*.png` are the real mark (cropped from the
+brand system's uploaded asset), not placeholders — replace them only if the
+brand system's logo asset changes.
+
+Color (light/dark pairs), type (Inter/Space Grotesk/JetBrains Mono via
+Google Fonts), spacing, and radius tokens come from `tokens.json` in that
+system. Voice: plainspoken and direct ("Find three roles that match your
+resume," not "Unlock your career potential"); a light Western turn of
+phrase is fine in empty states, never in errors or legal copy.
+
 ## Git workflow
 
 - `main` — production, tags trigger Chrome Web Store release.
