@@ -13,6 +13,7 @@
   "dependencies": {
     "@hired-hand/onet-mnm-client": "*",
     "@hired-hand/shared": "*",
+    "extpay": "^3.1.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

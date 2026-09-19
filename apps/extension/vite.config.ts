@@ -12,6 +12,14 @@ export default defineConfig({
       input: {
         sidepanel: resolve(root, 'src/sidepanel/index.html'),
         options: resolve(root, 'src/options/index.html'),
+        background: resolve(root, 'src/background/index.ts'),
+      },
+      output: {
+        // The MV3 manifest references `background.js` by that literal,
+        // unhashed path — keep it stable while the page bundles stay
+        // content-hashed as usual.
+        entryFileNames: (chunk) =>
+          chunk.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js',
       },
     },
   },

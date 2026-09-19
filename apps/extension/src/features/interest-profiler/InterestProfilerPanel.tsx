@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RIASEC_KEYS, type CareerMatch, type InterestProfilerResults } from '@hired-hand/shared';
 import { OnetClientError } from '@hired-hand/onet-mnm-client';
 import { onetClient } from '../../lib/onetClient';
+import { ExportResults } from './ExportResults';
 
 type Step = 'intro' | 'loading' | 'question' | 'submitting' | 'results';
 
@@ -389,6 +390,8 @@ export function InterestProfilerPanel() {
           ) : (
             <p className="text-ink-600 mt-2 text-sm">No matched careers were returned.</p>
           )}
+
+          <ExportResults results={results} careers={careers} />
 
           <button
             type="button"
