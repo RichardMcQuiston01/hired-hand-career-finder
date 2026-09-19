@@ -1,4 +1,4 @@
-import { AppShell } from '../components/AppShell';
+import { AppShell, DONATE_URL } from '../components/AppShell';
 
 interface ExtensionInfo {
   name: string;
@@ -54,9 +54,27 @@ export function App() {
         <h2 id="support-heading" className="font-display text-base font-semibold">
           Support
         </h2>
-        <p className="text-ink-600 mt-2 text-sm">
-          Donate/support content lands in Stage 3 on <code>feature/donate-block</code>. See{' '}
-          <code>docs/DEVELOPMENT_PLAN.md</code>.
+        <p className="text-ink-600 mt-2 max-w-prose text-sm">
+          If this helped you find a career, consider chipping in to offset the cost of development
+          and API access. No pressure — the extension works the same either way.
+        </p>
+        <a
+          href={DONATE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-accent-600 text-on-accent mt-3 inline-block rounded px-3 py-1.5 text-sm font-medium no-underline"
+        >
+          Donate via Stripe
+          <span className="sr-only"> (opens in new tab)</span>
+        </a>
+        <p className="mt-3">
+          <img
+            src="/donate-qr.svg"
+            alt="QR code to donate via Stripe"
+            width={160}
+            height={160}
+            className="rounded"
+          />
         </p>
       </section>
     </AppShell>

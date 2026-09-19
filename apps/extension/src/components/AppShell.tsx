@@ -5,6 +5,9 @@ interface AppShellProps {
   children: ReactNode;
 }
 
+/** Stripe donate link, reused by the footer here and the Options Support section. */
+export const DONATE_URL = 'https://donate.stripe.com/00w5kD3Gj1Xo9v7gVOcs800';
+
 /**
  * Minimal accessible page shell: skip link + landmark regions, styled with
  * the Hired Hand brand tokens (see src/index.css). Stage 1
@@ -22,8 +25,17 @@ export function AppShell({ title, children }: AppShellProps) {
       <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-4">
         {children}
       </main>
-      <footer className="border-border-subtle text-ink-600 border-t px-4 py-2 text-xs">
-        Hired Hand: Career Finder
+      <footer className="border-border-subtle text-ink-600 flex flex-wrap items-center gap-x-3 gap-y-1 border-t px-4 py-2 text-xs">
+        <span>Hired Hand: Career Finder</span>
+        <a
+          href={DONATE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-ink-900 underline"
+        >
+          Support this project
+          <span className="sr-only"> (opens in new tab)</span>
+        </a>
       </footer>
     </div>
   );
