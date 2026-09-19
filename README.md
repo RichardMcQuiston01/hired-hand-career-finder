@@ -1,6 +1,8 @@
-# template-repo
+# Hired Hand:  Career Finder
 
 ## Overview
+
+TypeScript based Chrome Extension incorporating functions O*NET API via the @richardmcquiston01/onet-library NPM library. Users can determine their optimum career using the Interest Profiler as well as find information on certificates, licenses, and more.
 
 ## Getting Started
 
