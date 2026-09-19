@@ -6,7 +6,7 @@
   "description": "Monorepo for the Hired Hand: Career Finder Chrome extension.",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.22.2"
   },
   "workspaces": [
     "apps/*",

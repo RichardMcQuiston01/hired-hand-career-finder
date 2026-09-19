@@ -11,7 +11,7 @@ architecture and staged build-out plan.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20+ (see `.nvmrc`)
+- [Node.js](https://nodejs.org/) 22.22.2+ (see `.nvmrc`)
 
 ### Installation
 
