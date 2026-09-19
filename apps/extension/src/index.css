@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-teal: #1f3d4a;
+  --color-brand-teal-light: #3a6e82;
+  --color-brand-orange: #e08a21;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+/* Visually hidden until focused — used for the skip link required by the
+   accessibility baseline in docs/DEVELOPMENT_PLAN.md. */
+.skip-link {
+  @apply focus:bg-brand-teal sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:px-3 focus:py-2 focus:text-white;
+}

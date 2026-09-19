@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Hired Hand: Career Finder",
+  "short_name": "Career Finder",
+  "version": "0.1.0",
+  "description": "Explore careers, browse O*NET occupation data, and find your best-fit career with the Interest Profiler assessment.",
+  "action": {
+    "default_title": "Hired Hand: Career Finder"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "options_page": "src/options/index.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["sidePanel", "storage"],
+  "host_permissions": []
+}

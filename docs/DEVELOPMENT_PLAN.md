@@ -13,10 +13,10 @@ README, it does **not** wrap `/mnm`, `/veterans`, `/mpp`, or the Interest Profil
 This extension's three named features live in the **`/mnm`** portal instead
 (confirmed against `resources/onet-web-services-openapi.json` in that repo):
 
-| Feature | Endpoint(s) |
-|---|---|
-| Career Search | `GET /mnm/search?keyword=` |
-| Browse Careers | `GET /mnm/careers/` (list) + `GET /mnm/careers/{code}/{section}` (skills, knowledge, abilities, personality, education, job_outlook, technology, explore_more) |
+| Feature           | Endpoint(s)                                                                                                                                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Career Search     | `GET /mnm/search?keyword=`                                                                                                                                                                                                                   |
+| Browse Careers    | `GET /mnm/careers/` (list) + `GET /mnm/careers/{code}/{section}` (skills, knowledge, abilities, personality, education, job_outlook, technology, explore_more)                                                                               |
 | Interest Profiler | `GET /mnm/interestprofiler/questions` (60Q) or `questions_30` (short form) → answer string `[1-5]{30}` or `{60}` → `GET /mnm/interestprofiler/results` (RIASEC scores) → `GET /mnm/interestprofiler/careers` (matches, filterable by `zone`) |
 
 All endpoints require `X-API-Key` on every call. We'll write a small typed
@@ -89,6 +89,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
 `staging` branches.
 
 **Stage 1 — Core infrastructure** (from `dev`, parallel)
+
 - Agent A — `feature/api-proxy`: Next.js proxy, key injection, origin allowlist
   (`chrome-extension://<id>`), rate limiting, error normalization.
 - Agent B — `feature/extension-shell`: Side Panel layout/nav, accessible shell
@@ -97,6 +98,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
   Zod validation, unit tests against mocked proxy responses.
 
 **Stage 2 — Features** (from `dev`, parallel)
+
 - Agent D — `feature/career-search`: debounced search, results list, `aria-live`
   result count.
 - Agent E — `feature/browse-careers`: paginated/filterable list + tabbed career
@@ -106,6 +108,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
   RIASEC results view, matched-careers list linking into Browse Careers.
 
 **Stage 3 — Monetization** (from `dev`, parallel)
+
 - Agent G — `feature/donate-block`: Support section in Options/side-panel
   footer using the existing `donate.svg`/Stripe link.
 - Agent H — `feature/extensionpay`: ExtensionPay SDK integration, paywall UI,
