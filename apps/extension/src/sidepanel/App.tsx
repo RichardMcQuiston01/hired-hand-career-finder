@@ -1,5 +1,6 @@
 import { AppShell } from '../components/AppShell';
 import { Tabs } from '../components/Tabs';
+import { BrowseCareersPanel } from '../features/browse-careers/BrowseCareersPanel';
 
 export function App() {
   return (
@@ -20,13 +21,7 @@ export function App() {
           {
             id: 'browse',
             label: 'Browse',
-            panel: (
-              <p>
-                Browse Careers placeholder — the paginated/filterable list and career detail view
-                land in Stage 2 on <code>feature/browse-careers</code>. See{' '}
-                <code>docs/DEVELOPMENT_PLAN.md</code>.
-              </p>
-            ),
+            panel: <BrowseCareersPanel />,
           },
           {
             id: 'interest-profiler',

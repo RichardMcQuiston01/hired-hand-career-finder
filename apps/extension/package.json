@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@hired-hand/onet-mnm-client": "*",
+    "@hired-hand/shared": "*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
