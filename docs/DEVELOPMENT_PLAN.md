@@ -13,10 +13,10 @@ README, it does **not** wrap `/mnm`, `/veterans`, `/mpp`, or the Interest Profil
 This extension's three named features live in the **`/mnm`** portal instead
 (confirmed against `resources/onet-web-services-openapi.json` in that repo):
 
-| Feature | Endpoint(s) |
-|---|---|
-| Career Search | `GET /mnm/search?keyword=` |
-| Browse Careers | `GET /mnm/careers/` (list) + `GET /mnm/careers/{code}/{section}` (skills, knowledge, abilities, personality, education, job_outlook, technology, explore_more) |
+| Feature           | Endpoint(s)                                                                                                                                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Career Search     | `GET /mnm/search?keyword=`                                                                                                                                                                                                                   |
+| Browse Careers    | `GET /mnm/careers/` (list) + `GET /mnm/careers/{code}/{section}` (skills, knowledge, abilities, personality, education, job_outlook, technology, explore_more)                                                                               |
 | Interest Profiler | `GET /mnm/interestprofiler/questions` (60Q) or `questions_30` (short form) → answer string `[1-5]{30}` or `{60}` → `GET /mnm/interestprofiler/results` (RIASEC scores) → `GET /mnm/interestprofiler/careers` (matches, filterable by `zone`) |
 
 All endpoints require `X-API-Key` on every call. We'll write a small typed
@@ -52,6 +52,30 @@ docs/
 
 Tooling: TypeScript strict mode, ESLint (Google TS Style Guide), Prettier,
 Vitest + React Testing Library + `jest-axe`, Playwright for E2E.
+
+## Branding
+
+Sourced from the Hired Hand brand's design system:
+https://claude.ai/artifact/YESibrGgC1otZwcLnTf6Kv (design tokens, voice,
+logo assets — read `project/README.md` and `project/tokens.json` there for
+the full brand book; only the subset this extension currently uses is wired
+into `apps/extension/src/index.css`).
+
+Hired Hand is the brand behind this extension and its sibling, [Job
+Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension).
+Both share **the same fixed cowhand-with-phone lockup** — the guide is
+explicit that the mark is not token-driven and must not be recolored per
+product, so Career Finder does not get its own tinted variant; the two
+extensions are told apart by name and in-product context, not by the icon.
+`apps/extension/public/icons/*.png` are the real mark (cropped from the
+brand system's uploaded asset), not placeholders — replace them only if the
+brand system's logo asset changes.
+
+Color (light/dark pairs), type (Inter/Space Grotesk/JetBrains Mono via
+Google Fonts), spacing, and radius tokens come from `tokens.json` in that
+system. Voice: plainspoken and direct ("Find three roles that match your
+resume," not "Unlock your career potential"); a light Western turn of
+phrase is fine in empty states, never in errors or legal copy.
 
 ## Git workflow
 
@@ -89,6 +113,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
 `staging` branches.
 
 **Stage 1 — Core infrastructure** (from `dev`, parallel)
+
 - Agent A — `feature/api-proxy`: Next.js proxy, key injection, origin allowlist
   (`chrome-extension://<id>`), rate limiting, error normalization.
 - Agent B — `feature/extension-shell`: Side Panel layout/nav, accessible shell
@@ -97,6 +122,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
   Zod validation, unit tests against mocked proxy responses.
 
 **Stage 2 — Features** (from `dev`, parallel)
+
 - Agent D — `feature/career-search`: debounced search, results list, `aria-live`
   result count.
 - Agent E — `feature/browse-careers`: paginated/filterable list + tabbed career
@@ -106,6 +132,7 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
   RIASEC results view, matched-careers list linking into Browse Careers.
 
 **Stage 3 — Monetization** (from `dev`, parallel)
+
 - Agent G — `feature/donate-block`: Support section in Options/side-panel
   footer using the existing `donate.svg`/Stripe link.
 - Agent H — `feature/extensionpay`: ExtensionPay SDK integration, paywall UI,

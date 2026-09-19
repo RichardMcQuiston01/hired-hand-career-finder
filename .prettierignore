@@ -1,0 +1,7 @@
+dist
+build
+node_modules
+.next
+*.png
+*.svg
+package-lock.json
