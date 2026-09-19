@@ -28,7 +28,8 @@ const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 const { version_names } = JSON.parse(readFileSync(versionNamesPath, 'utf-8'));
 
 const parts = manifest.version.split('.').map(Number);
-let [major, minor, patch] = parts.length === 3 ? parts : [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+let [major, minor, patch] =
+  parts.length === 3 ? parts : [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
 
 if (bumpMajor) {
   major += 1;
