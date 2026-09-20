@@ -11,6 +11,8 @@
     "test": "vitest run",
     "pretest:e2e": "npm run build",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "pretest:e2e-integration": "npm run build",
+    "test:e2e-integration": "playwright test --config e2e-integration/playwright.config.ts",
     "bump-version": "node scripts/bump-version.mjs",
     "gen-icons": "node scripts/gen-icons.mjs"
   },

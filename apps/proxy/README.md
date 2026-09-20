@@ -19,6 +19,7 @@ directly.
 | `ALLOWED_EXTENSION_ORIGINS` | In production | Comma-separated list of exact `chrome-extension://<id>` origins allowed to call this API in production (`NODE_ENV === 'production'`). Outside production, any `chrome-extension://` origin is allowed (there's no fixed extension ID yet during development), and a warning is logged so this is never mistaken for the production policy. |
 | `RATE_LIMIT_MAX_REQUESTS`   | No            | Requests allowed per client per window. Defaults to `60`.                                                                                                                                                                                                                                                                                  |
 | `RATE_LIMIT_WINDOW_MS`      | No            | Window size in milliseconds. Defaults to `60000` (1 minute).                                                                                                                                                                                                                                                                               |
+| `ONET_BASE_URL`             | No            | Overrides the O\*NET API's base URL (default `https://api-v2.onetcenter.org`). Only meant for the Stage 6 integration suite (`apps/extension/e2e-integration/`) to point this proxy at a local fixture server instead — never set this in production.                                                                                      |
 
 Copy `.env.local.example`-style values into `apps/proxy/.env.local` for local
 development (that file is gitignored via the repo's root `.gitignore`):
@@ -124,10 +125,17 @@ Router project with no special build steps, so deploying it should be a
 matter of connecting the repo (with this app's root set to `apps/proxy`) to
 a hosting provider and setting the environment variables above.
 
-**Live verification against the real O\*NET API has not been done.** The
-sandbox this proxy was built in blocks network egress to
+**Live verification against the real O\*NET API has still not been done.**
+The sandbox this proxy was built in (and the one Stage 6's
+`apps/extension/e2e-integration/` suite runs in) blocks network egress to
 `api-v2.onetcenter.org` by org policy, so the upstream calls in this app
-could not be exercised end-to-end here — only unit-tested against a mocked
-`fetch`. This needs to happen once the app is deployed (a Vercel preview) or
-run from a machine with unrestricted network access, using a real `ONET_API`
-key.
+have only ever been exercised against a mocked `fetch` (unit tests) or a
+local fixture server standing in for O\*NET
+(`apps/extension/e2e-integration/fixtures/mock-onet-server.mjs`, wired up
+via the `ONET_BASE_URL` env override below — real end-to-end otherwise: a
+real browser extension, a real HTTP request to this real server, real key
+injection and CORS). Only the very last hop, this proxy's own `fetch` to
+the real O\*NET API, remains unverified. This needs to happen once the app
+is deployed (a Vercel preview) or run from a machine with unrestricted
+network access, using a real `ONET_API` key and leaving `ONET_BASE_URL`
+unset.

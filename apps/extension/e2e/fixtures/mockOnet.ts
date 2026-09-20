@@ -28,9 +28,12 @@ export async function installOnetMocks(page: Page): Promise<void> {
     if (path.endsWith('/mnm/search')) {
       return json(SEARCH_RESULTS);
     }
-    if (path.endsWith('/mnm/careers/')) {
+    if (path.endsWith('/mnm/careers')) {
       // Bare list endpoint (`listCareers`) — checked before the generic
       // `/mnm/careers/{code}/...` branch below, which this also matches.
+      // No trailing slash: the proxy's catch-all route 308-redirects a
+      // trailing-slash request (dropping CORS headers), so the client
+      // deliberately never sends one — see `onet-mnm-client/src/client.ts`.
       return json(BROWSE_LIST);
     }
     if (path.includes('/mnm/careers/')) {

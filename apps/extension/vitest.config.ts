@@ -8,10 +8,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    // `e2e/**` holds the separate Playwright + axe-core/Playwright layer
-    // (see `e2e/playwright.config.ts`, `npm run test:e2e`) — a different
-    // runner with its own `test`/`describe` globals that Vitest must not
-    // also try to collect.
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    // `e2e/**` and `e2e-integration/**` hold separate Playwright layers
+    // (see their own `playwright.config.ts`, `npm run test:e2e` /
+    // `test:e2e-integration`) — a different runner with its own
+    // `test`/`describe` globals that Vitest must not also try to collect.
+    exclude: [...configDefaults.exclude, 'e2e/**', 'e2e-integration/**'],
   },
 });

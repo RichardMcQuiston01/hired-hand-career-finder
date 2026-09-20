@@ -166,11 +166,47 @@ the missing `sharp` dependency for `gen-icons.mjs`. See
 Proxy deploys via Vercel's git integration on push to `staging`/`main`,
 independent of extension versioning.
 
-**Stage 6 — Staging integration test**
-PR `dev → staging`. Playwright E2E with the unpacked extension: open side
-panel, search, browse a career, complete the Interest Profiler end-to-end,
-confirm the API key never appears in network requests or the built bundle,
-verify donate + ExtensionPay flows. Fixes land back through `dev`.
+**Stage 6 — Staging integration test** ✅ (`feature/staging-integration-e2e`,
+merged to `dev`)
+`apps/extension/e2e-integration/`: a new Playwright layer, distinct from the
+Stage 4 `apps/extension/e2e/` whole-page a11y suite (which mocks
+`chrome.*`/network at the `page.route` level inside a plain `vite preview`
+tab). This one loads the real built, unpacked extension into a real
+Chromium extension context (`--load-extension`, headless via Chromium's
+"new" headless mode) — a real `chrome.runtime`, a real background service
+worker, so `extpay` and `chrome.runtime.getManifest()` run unmodified
+instead of being stubbed — and runs it against the real `apps/proxy` Next.js
+server, not an in-process mock of the route handler. Confirms: Search,
+Browse (list + detail), and the Interest Profiler complete end-to-end
+through a real HTTP round-trip to the real proxy; the extension never calls
+`api-v2.onetcenter.org` directly and the API key never appears in any
+request the browser makes nor anywhere in the built `dist/` bundle; the
+donate link is real; ExtensionPay degrades gracefully to the unpaid paywall
+state rather than hanging or crashing when its own remote check fails.
+
+**What's genuinely live vs. mocked:** this sandbox cannot reach
+`api-v2.onetcenter.org` (org policy blocks the egress — same restriction
+`apps/proxy/README.md` already documented) even though a real `ONET_API`
+key is available, so `apps/proxy`'s upstream base URL is pointed at a small
+local fixture server (`e2e-integration/fixtures/mock-onet-server.mjs`) via
+the new `ONET_BASE_URL` env override instead. Everything up to that last
+hop is real: the extension's own network calls, the real proxy process
+(key injection, CORS, the allow-list, error normalization), a real
+`chrome-extension://` origin. Only the proxy-to-O\*NET leg itself remains
+unverified against the live API — someone with unrestricted network access
+(or once `apps/proxy` is actually deployed) should run this suite once
+against the real upstream to close that last gap.
+
+**Found and fixed a real production bug in the process:** `listCareers()`
+and the section-less `getCareerDetail()` in `onet-mnm-client` built
+trailing-slash request paths (`/mnm/careers/`, `/mnm/careers/{code}/`); the
+proxy's Next.js catch-all route 308-redirects those to the slash-less form,
+and that redirect response carries no CORS headers, so every real browser
+call to Browse Careers would have silently failed with an opaque CORS error
+— invisible to both the unit tests (which call the route handler directly,
+bypassing Next's HTTP routing layer) and the Stage 4 suite (which mocks the
+network entirely). This is exactly the class of bug Stage 6 exists to catch.
+Fixes land back through `dev`.
 
 **Stage 7 — Release**
 PR `staging → main`. Tag `vX.Y.Z` → `release.yml` publishes to the Chrome Web
