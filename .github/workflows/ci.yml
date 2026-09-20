@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: Lint, typecheck, test, build, a11y e2e
+    name: Lint, typecheck, test, build, a11y e2e, staging integration e2e
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,3 +52,16 @@ jobs:
 
       - name: Accessibility + keyboard-nav e2e
         run: npm run test:e2e -w apps/extension
+
+      # Stage 6 (docs/DEVELOPMENT_PLAN.md): loads the real built, unpacked
+      # extension into a real Chromium extension context — real
+      # chrome.runtime/chrome.storage, a real background service worker, so
+      # `extpay` and chrome.runtime.getManifest() run unmodified — and runs
+      # it against the real apps/proxy server, not a mocked route handler.
+      # The only thing this can't exercise is the proxy's final hop to the
+      # real O*NET API, since neither this runner nor the sandbox this suite
+      # was built in have a real ONET_API key wired up for CI; a mock O*NET
+      # fixture server stands in for that (see
+      # apps/extension/e2e-integration/playwright.config.ts's top comment).
+      - name: Staging integration e2e (real extension + real proxy)
+        run: npm run test:e2e-integration -w apps/extension

@@ -8,8 +8,13 @@
  * can never supply or override it.
  */
 
-/** Base URL for the O*NET Web Services v2 API. */
-export const ONET_BASE_URL = 'https://api-v2.onetcenter.org';
+/**
+ * Base URL for the O*NET Web Services v2 API. Overridable via `ONET_BASE_URL`
+ * so integration tests can point this proxy at a local fixture server instead
+ * of the real upstream (see `apps/extension/e2e-integration/`) — production
+ * behavior is unchanged since the env var is normally unset.
+ */
+export const ONET_BASE_URL = process.env.ONET_BASE_URL ?? 'https://api-v2.onetcenter.org';
 
 /**
  * The only career-detail sections this proxy will forward, per the O*NET

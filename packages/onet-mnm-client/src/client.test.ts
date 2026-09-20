@@ -50,6 +50,40 @@ describe('searchCareers', () => {
   });
 });
 
+describe('listCareers', () => {
+  it('requests /mnm/careers with no trailing slash', async () => {
+    // A trailing slash here gets 308-redirected by the proxy's Next.js
+    // catch-all route, and that redirect response carries no CORS headers —
+    // silently breaking every real browser call (unit tests calling a
+    // mocked `fetch` can't catch this; only a real HTTP round-trip can).
+    const listResult = {
+      start: 1,
+      end: 5,
+      total: 5,
+      occupation: [
+        {
+          href: 'https://example.test/mnm/careers/15-1252.00/',
+          code: '15-1252.00',
+          title: 'Software Developers',
+        },
+      ],
+    };
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe('/api/onet/mnm/careers');
+      expect(url.searchParams.get('start')).toBe('1');
+      expect(url.searchParams.get('end')).toBe('20');
+      return jsonResponse(listResult);
+    });
+
+    const client = createOnetMnmClient({ baseUrl: BASE_URL, fetchImpl: fetchMock as typeof fetch });
+    const result = await client.listCareers({ start: 1, end: 20 });
+
+    expect(result).toEqual(listResult);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('getCareerDetail', () => {
   it('requests the section path and returns the validated detail', async () => {
     const detail = {
@@ -73,7 +107,7 @@ describe('getCareerDetail', () => {
     const detail = { code: '15-1252.00', title: 'Software Developers' };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/api/onet/mnm/careers/15-1252.00/');
+      expect(url.pathname).toBe('/api/onet/mnm/careers/15-1252.00');
       return jsonResponse(detail);
     });
 

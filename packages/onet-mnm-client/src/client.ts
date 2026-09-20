@@ -149,12 +149,21 @@ export function createOnetMnmClient(options: OnetMnmClientOptions): OnetMnmClien
     },
 
     async listCareers(params = {}) {
-      const url = buildUrl(baseUrl, '/mnm/careers/', { start: params.start, end: params.end });
+      // No trailing slash: the proxy's catch-all route 308-redirects a
+      // trailing-slash request to the slash-less form, and that redirect
+      // response carries no CORS headers, so a real browser fetch (unlike
+      // a same-process unit test calling the route handler directly) fails
+      // with an opaque CORS error rather than following it. Caught by the
+      // Stage 6 staging integration suite, which is the first layer to run
+      // a real HTTP round-trip through the real Next.js dev server instead
+      // of calling the route handler in-process or mocking the network.
+      const url = buildUrl(baseUrl, '/mnm/careers', { start: params.start, end: params.end });
       return fetchJson(fetchImpl, url, careerSearchResultSchema);
     },
 
     async getCareerDetail(code, section) {
-      const path = section ? `/mnm/careers/${code}/${section}` : `/mnm/careers/${code}/`;
+      // Same no-trailing-slash reasoning as `listCareers` above.
+      const path = section ? `/mnm/careers/${code}/${section}` : `/mnm/careers/${code}`;
       const url = buildUrl(baseUrl, path);
       return fetchJson(fetchImpl, url, careerDetailSchema);
     },
