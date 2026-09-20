@@ -17,7 +17,19 @@
   --on-accent: #0b3444;
   --surface-50: #f7fafb;
   --surface-100: #ffffff;
-  --border-subtle: #dce6ea;
+  /*
+   * Accessibility hardening (Stage 4): the design system's stated
+   * `#dce6ea` gives only ~1.2:1 contrast against these surfaces. That's
+   * fine for a purely decorative divider, but this token also draws the
+   * *only* visible boundary of several real controls (the search input,
+   * outline buttons, unselected detail-section chips) — WCAG 1.4.11 needs
+   * 3:1 there. Deepened it (same blue-gray hue, closer to `--brand-500`)
+   * to clear 3:1 against both surfaces in both themes; see
+   * docs/ACCESSIBILITY_TESTING.md / the PR description for the numbers.
+   * This is a deviation from the design system's stated value, flagged
+   * rather than silently changed.
+   */
+  --border-subtle: #628ba0;
   --ink-900: #0f2a35;
   --ink-600: #4b6672;
 }
@@ -29,7 +41,7 @@
     --accent-700: #e17a24;
     --surface-50: #0b1e27;
     --surface-100: #122b37;
-    --border-subtle: #274957;
+    --border-subtle: #487f96;
     --ink-900: #eaf3f6;
     --ink-600: #a9c2cb;
   }
@@ -58,7 +70,10 @@ body {
 
 /* Visually hidden until focused — used for the skip link required by the
    accessibility baseline in docs/DEVELOPMENT_PLAN.md. accent-600 pairs with
-   on-accent text per the brand guide (white fails contrast on this orange). */
+   on-accent text per the brand guide (white fails contrast on this orange).
+   `border-accent-700` gives the link's own boundary (its fill against
+   whatever it's floating over) the 3:1 WCAG 1.4.11 non-text contrast this
+   solid-fill accent-600 badge doesn't clear on its own in light mode. */
 .skip-link {
-  @apply focus:bg-accent-600 focus:text-on-accent sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:px-3 focus:py-2;
+  @apply focus:bg-accent-600 focus:text-on-accent focus:border-accent-700 sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:border focus:px-3 focus:py-2;
 }

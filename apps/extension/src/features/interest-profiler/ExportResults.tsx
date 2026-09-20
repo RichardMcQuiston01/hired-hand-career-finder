@@ -145,7 +145,7 @@ export function ExportResults({ results, careers }: ExportResultsProps) {
           <button
             type="button"
             onClick={() => void checkStatus()}
-            className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 mt-2 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+            className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 mt-2 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
           >
             Refresh status
           </button>
@@ -166,14 +166,14 @@ export function ExportResults({ results, careers }: ExportResultsProps) {
             <button
               type="button"
               onClick={() => void handleUpgrade()}
-              className="bg-accent-600 text-on-accent focus-visible:ring-accent-600 rounded px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="bg-accent-600 text-on-accent focus-visible:ring-accent-700 border-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Upgrade to export
             </button>
             <button
               type="button"
               onClick={() => void checkStatus()}
-              className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Refresh status
             </button>
@@ -188,14 +188,14 @@ export function ExportResults({ results, careers }: ExportResultsProps) {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Export as CSV
             </button>
             <button
               type="button"
               onClick={printResults}
-              className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Print / Save as PDF
             </button>

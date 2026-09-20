@@ -62,7 +62,7 @@ export function App() {
           href={DONATE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-accent-600 text-on-accent mt-3 inline-block rounded px-3 py-1.5 text-sm font-medium no-underline"
+          className="bg-accent-600 text-on-accent border-accent-700 mt-3 inline-block rounded border px-3 py-1.5 text-sm font-medium no-underline"
         >
           Donate via Stripe
           <span className="sr-only"> (opens in new tab)</span>

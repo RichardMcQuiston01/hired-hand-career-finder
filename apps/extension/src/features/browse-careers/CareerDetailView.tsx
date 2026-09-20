@@ -202,7 +202,7 @@ export function CareerDetailView({ career, onBack }: CareerDetailViewProps) {
       <button
         type="button"
         onClick={onBack}
-        className="text-ink-600 hover:text-ink-900 focus-visible:ring-accent-600 mb-3 inline-flex items-center gap-1 text-sm font-medium focus:outline-none focus-visible:ring-2"
+        className="text-ink-600 hover:text-ink-900 focus-visible:ring-accent-700 mb-3 inline-flex items-center gap-1 text-sm font-medium focus:outline-none focus-visible:ring-2"
       >
         <span aria-hidden="true">←</span> Back to results
       </button>
@@ -247,9 +247,9 @@ export function CareerDetailView({ career, onBack }: CareerDetailViewProps) {
               type="button"
               aria-pressed={selectedSection === section}
               onClick={() => selectSection(section)}
-              className={`focus-visible:ring-accent-600 rounded border px-2.5 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 ${
+              className={`focus-visible:ring-accent-700 rounded border px-2.5 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 ${
                 selectedSection === section
-                  ? 'border-accent-600 bg-accent-600 text-on-accent'
+                  ? 'border-accent-700 bg-accent-600 text-on-accent'
                   : 'border-border-subtle text-ink-900 hover:bg-surface-100'
               }`}
             >

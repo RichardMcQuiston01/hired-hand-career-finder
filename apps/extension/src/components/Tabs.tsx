@@ -82,9 +82,9 @@ export function Tabs({ label, tabs }: TabsProps) {
               tabIndex={selected ? 0 : -1}
               onClick={() => setActiveId(tab.id)}
               onKeyDown={handleKeyDown}
-              className={`focus-visible:ring-accent-600 -mb-px border-b-2 px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 ${
+              className={`focus-visible:ring-accent-700 -mb-px border-b-2 px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 ${
                 selected
-                  ? 'border-accent-600 text-ink-900'
+                  ? 'border-accent-700 text-ink-900'
                   : 'text-ink-600 hover:text-ink-900 border-transparent'
               }`}
             >

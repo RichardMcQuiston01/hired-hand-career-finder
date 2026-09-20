@@ -266,14 +266,14 @@ export function InterestProfilerPanel() {
             <button
               type="button"
               onClick={() => void startAssessment(true)}
-              className="bg-accent-600 text-on-accent focus-visible:ring-accent-600 rounded px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="bg-accent-600 text-on-accent focus-visible:ring-accent-700 border-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Short form — 30 questions
             </button>
             <button
               type="button"
               onClick={() => void startAssessment(false)}
-              className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Full form — 60 questions
             </button>
@@ -335,7 +335,7 @@ export function InterestProfilerPanel() {
             <button
               type="button"
               onClick={handleBack}
-              className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+              className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
             >
               Back
             </button>
@@ -343,7 +343,7 @@ export function InterestProfilerPanel() {
               type="submit"
               disabled={currentAnswer == null}
               aria-describedby={currentAnswer == null ? 'ip-answer-hint' : undefined}
-              className="bg-accent-600 text-on-accent focus-visible:ring-accent-600 rounded px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-accent-600 text-on-accent focus-visible:ring-accent-700 border-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLastQuestion ? 'Submit' : 'Next'}
             </button>
@@ -396,7 +396,7 @@ export function InterestProfilerPanel() {
           <button
             type="button"
             onClick={() => void handleStartOver()}
-            className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 mt-6 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+            className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 mt-6 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
           >
             Start over
           </button>
