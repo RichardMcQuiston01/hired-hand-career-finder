@@ -6,10 +6,12 @@ vi.mock('@/lib/rateLimit', async (importOriginal) => {
   return {
     ...actual,
     checkRateLimit: vi.fn(actual.checkRateLimit),
+    checkGlobalRateLimit: vi.fn(actual.checkGlobalRateLimit),
   };
 });
 
-import { checkRateLimit } from '@/lib/rateLimit';
+import { clearCache } from '@/lib/cache';
+import { checkGlobalRateLimit, checkRateLimit } from '@/lib/rateLimit';
 import { GET, OPTIONS } from './route';
 
 const DEV_EXTENSION_ORIGIN = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -26,6 +28,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.mocked(checkRateLimit).mockClear();
+  vi.mocked(checkGlobalRateLimit).mockClear();
+  clearCache();
 });
 
 describe('GET /api/onet/[...path]', () => {
@@ -136,6 +140,71 @@ describe('GET /api/onet/[...path]', () => {
     expect(response.status).toBe(429);
     expect(response.headers.get('Retry-After')).toBe('7');
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 429 once the global rate limiter denies the request, even if the per-client one allows it', async () => {
+    vi.mocked(checkGlobalRateLimit).mockReturnValueOnce({ allowed: false, retryAfterSeconds: 3 });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = makeRequest('https://proxy.example.com/api/onet/mnm/search?keyword=nurse', {
+      origin: DEV_EXTENSION_ORIGIN,
+    });
+
+    const response = await GET(request, paramsFor(['mnm', 'search']));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('Retry-After')).toBe('3');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('serves a repeat identical request from the cache, without calling upstream or either rate limiter', async () => {
+    vi.stubEnv('ONET_API', 'secret-key');
+    const upstreamBody = { occupations: [{ code: '29-1141.00', title: 'Registered Nurses' }] };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(upstreamBody), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = () =>
+      makeRequest('https://proxy.example.com/api/onet/mnm/search?keyword=nurse', {
+        origin: DEV_EXTENSION_ORIGIN,
+      });
+
+    const first = await GET(request(), paramsFor(['mnm', 'search']));
+    expect(first.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    vi.mocked(checkRateLimit).mockClear();
+    vi.mocked(checkGlobalRateLimit).mockClear();
+
+    const second = await GET(request(), paramsFor(['mnm', 'search']));
+    expect(second.status).toBe(200);
+    await expect(second.json()).resolves.toEqual(upstreamBody);
+    expect(fetchMock).toHaveBeenCalledTimes(1); // not called again
+    expect(checkRateLimit).not.toHaveBeenCalled();
+    expect(checkGlobalRateLimit).not.toHaveBeenCalled();
+  });
+
+  it('does not cache a non-2xx upstream response', async () => {
+    // A fresh Response per call — its body stream can only be read once,
+    // and this test (unlike the others above) deliberately calls fetch twice.
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(
+        async () => new Response(JSON.stringify({ message: 'nope' }), { status: 404 }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = () =>
+      makeRequest('https://proxy.example.com/api/onet/mnm/search?keyword=ghost', {
+        origin: DEV_EXTENSION_ORIGIN,
+      });
+
+    await GET(request(), paramsFor(['mnm', 'search']));
+    await GET(request(), paramsFor(['mnm', 'search']));
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 
