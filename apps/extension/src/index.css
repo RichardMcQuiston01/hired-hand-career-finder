@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+/*
+ * Hired Hand brand tokens (light values default, dark overrides below),
+ * sourced from the brand's design system: https://claude.ai/artifact/YESibrGgC1otZwcLnTf6Kv
+ * Only the subset this shell currently uses is wired in — pull additional
+ * tokens (status colors, the `sand-*` marketing palette, etc.) from that
+ * system's tokens.json as later stages need them.
+ */
+:root {
+  color-scheme: light dark;
+
+  --brand-900: #0b3444;
+  --brand-500: #2c6478;
+  --accent-600: #f97316;
+  --accent-700: #c2570c;
+  --on-accent: #0b3444;
+  --surface-50: #f7fafb;
+  --surface-100: #ffffff;
+  /*
+   * Accessibility hardening (Stage 4): the design system's stated
+   * `#dce6ea` gives only ~1.2:1 contrast against these surfaces. That's
+   * fine for a purely decorative divider, but this token also draws the
+   * *only* visible boundary of several real controls (the search input,
+   * outline buttons, unselected detail-section chips) — WCAG 1.4.11 needs
+   * 3:1 there. Deepened it (same blue-gray hue, closer to `--brand-500`)
+   * to clear 3:1 against both surfaces in both themes; see
+   * docs/ACCESSIBILITY_TESTING.md / the PR description for the numbers.
+   * This is a deviation from the design system's stated value, flagged
+   * rather than silently changed.
+   */
+  --border-subtle: #628ba0;
+  --ink-900: #0f2a35;
+  --ink-600: #4b6672;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-500: #3a7d93;
+    --accent-600: #fb8b3b;
+    --accent-700: #e17a24;
+    --surface-50: #0b1e27;
+    --surface-100: #122b37;
+    --border-subtle: #487f96;
+    --ink-900: #eaf3f6;
+    --ink-600: #a9c2cb;
+  }
+}
+
+@theme {
+  --color-brand-900: var(--brand-900);
+  --color-brand-500: var(--brand-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+  --color-on-accent: var(--on-accent);
+  --color-surface-50: var(--surface-50);
+  --color-surface-100: var(--surface-100);
+  --color-border-subtle: var(--border-subtle);
+  --color-ink-900: var(--ink-900);
+  --color-ink-600: var(--ink-600);
+
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Visually hidden until focused — used for the skip link required by the
+   accessibility baseline in docs/DEVELOPMENT_PLAN.md. accent-600 pairs with
+   on-accent text per the brand guide (white fails contrast on this orange).
+   `border-accent-700` gives the link's own boundary (its fill against
+   whatever it's floating over) the 3:1 WCAG 1.4.11 non-text contrast this
+   solid-fill accent-600 badge doesn't clear on its own in light mode. */
+.skip-link {
+  @apply focus:bg-accent-600 focus:text-on-accent focus:border-accent-700 sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:border focus:px-3 focus:py-2;
+}
