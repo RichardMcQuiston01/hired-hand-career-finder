@@ -124,7 +124,7 @@ export function BrowseCareersPanel() {
                   }
                 }}
                 onClick={() => setSelectedCareer(career)}
-                className="hover:bg-surface-100 focus-visible:ring-accent-600 flex w-full items-center justify-between gap-2 py-2 text-left focus:outline-none focus-visible:ring-2"
+                className="hover:bg-surface-100 focus-visible:ring-accent-700 flex w-full items-center justify-between gap-2 py-2 text-left focus:outline-none focus-visible:ring-2"
               >
                 <span>
                   <span className="text-ink-900 block text-sm font-medium">{career.title}</span>
@@ -134,7 +134,7 @@ export function BrowseCareersPanel() {
                   <span
                     aria-label="Bright Outlook career"
                     title="Bright Outlook career"
-                    className="text-accent-600"
+                    className="text-accent-700"
                   >
                     ★
                   </span>
@@ -150,7 +150,7 @@ export function BrowseCareersPanel() {
           type="button"
           onClick={() => setStart((current) => Math.max(1, current - PAGE_SIZE))}
           disabled={!hasPrevious}
-          className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Previous
         </button>
@@ -158,7 +158,7 @@ export function BrowseCareersPanel() {
           type="button"
           onClick={() => setStart((current) => current + PAGE_SIZE)}
           disabled={!hasNext}
-          className="border-border-subtle text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="border-border-subtle text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Next
         </button>

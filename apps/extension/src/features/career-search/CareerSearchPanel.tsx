@@ -115,12 +115,12 @@ export function CareerSearchPanel() {
             value={inputValue}
             onChange={(event) => handleChange(event.target.value)}
             placeholder="Search careers, e.g. nurse"
-            className="border-border-subtle bg-surface-100 text-ink-900 focus-visible:ring-accent-600 rounded border px-3 py-2 text-sm focus:outline-none focus-visible:ring-2"
+            className="border-border-subtle bg-surface-100 text-ink-900 focus-visible:ring-accent-700 rounded border px-3 py-2 text-sm focus:outline-none focus-visible:ring-2"
           />
         </div>
         <button
           type="submit"
-          className="bg-accent-600 text-on-accent focus-visible:ring-accent-600 rounded px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
+          className="bg-accent-600 text-on-accent focus-visible:ring-accent-700 border-accent-700 rounded border px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2"
         >
           Search
         </button>
@@ -146,7 +146,7 @@ export function CareerSearchPanel() {
               <span className="flex items-center gap-2">
                 <span className="text-ink-600 font-mono text-xs">{career.code}</span>
                 {isBrightOutlook(career) && (
-                  <span title="Bright Outlook" className="text-accent-600 text-sm">
+                  <span title="Bright Outlook" className="text-accent-700 text-sm">
                     <span aria-hidden="true">★</span>
                     <span className="sr-only">Bright Outlook</span>
                   </span>

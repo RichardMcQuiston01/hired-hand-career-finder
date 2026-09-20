@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: Lint, typecheck, test, build
+    name: Lint, typecheck, test, build, a11y e2e
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,3 +39,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Whole-page WCAG 2.1 A+AA axe gate (apps/extension/e2e), on top of the
+      # `jest-axe` unit tests included in `npm run test` above — this is the
+      # accessibility CI gate the development plan calls for, tightened to
+      # fail the build on any violation. GitHub-hosted runners don't have
+      # Playwright's browsers pre-installed, so install them explicitly
+      # (`--with-deps` also installs the system libraries Chromium needs).
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/extension
+
+      - name: Accessibility + keyboard-nav e2e
+        run: npm run test:e2e -w apps/extension
