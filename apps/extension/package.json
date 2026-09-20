@@ -10,7 +10,9 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "pretest:e2e": "npm run build",
-    "test:e2e": "playwright test --config e2e/playwright.config.ts"
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "bump-version": "node scripts/bump-version.mjs",
+    "gen-icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "@hired-hand/onet-mnm-client": "*",
@@ -34,6 +36,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "jest-axe": "^11.0.0",
     "jsdom": "^30.1.0",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",

@@ -2,15 +2,15 @@
 .SYNOPSIS
   Mints a Chrome Web Store API refresh token via the OAuth 2.0 loopback
   flow, and stores it alongside the other deploy secrets in
-  chrome-extension\.env.
+  apps\extension\.env.
 
 .DESCRIPTION
   Requires a Google Cloud OAuth client of type "Desktop app" (see
-  docs\chrome-web-store-deploy.md for the one-time setup). Uses only
+  docs\CHROME_WEB_STORE_DEPLOY.md for the one-time setup). Uses only
   built-in .NET types -- no extra modules needed.
 
 .EXAMPLE
-  cd chrome-extension
+  cd apps\extension
   .\scripts\get-refresh-token.ps1
 #>
 
