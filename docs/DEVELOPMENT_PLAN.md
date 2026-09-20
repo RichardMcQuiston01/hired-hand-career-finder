@@ -145,12 +145,24 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
 gate tightened to fail build), manual keyboard-only + screen reader (VoiceOver/
 NVDA) walkthrough documented in the repo, contrast/theme fixes.
 
-**Stage 5 — CI/CD** (from `dev`, parallel with Stage 2-4 once Stage 0/1 land)
-`feature/ci-cd`: `ci.yml` (lint/typecheck/test/build/a11y gate on PRs to
-`dev`/`staging`/`main`); `release.yml` (on `v*.*.*` tag push to `main` — build,
-zip, publish via the Chrome Web Store Publish API using a maintained action,
-mirroring `onet-library`'s own tag-triggered publish workflow; secrets:
-`CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_EXTENSION_ID`).
+**Stage 5 — CI/CD** ✅ (`feature/release-cicd`, merged to `dev`)
+`ci.yml` (lint/typecheck/test/build/a11y gate on PRs to `dev`/`staging`/`main`
+— done in Stage 0/4) plus `release.yml`: on `v*.*.*` tag push, re-runs the
+full CI gate, fails fast if the tag doesn't match
+`apps/extension/public/manifest.json`'s `version`, builds and zips the
+extension, then publishes it via direct calls to the Chrome Web Store
+Publish API (token exchange, upload, publish) rather than a third-party
+action — the two candidate actions checked during this stage either no
+longer resolve or require restructuring the four secrets into a single JSON
+blob, so calling the (well-documented, stable) REST API directly keeps the
+secrets as the four separate values `apps/extension/.env.example` and the
+`get-refresh-token` helper scripts already establish: `CHROME_CLIENT_ID`,
+`CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`, `CHROME_EXTENSION_ID`. Also
+fixed the path assumptions in the `scripts/*.mjs`/`get-refresh-token.*`
+files pushed directly to `dev` (they assumed `scripts/` lived under
+`apps/extension/`, not the repo root) by relocating them there, and added
+the missing `sharp` dependency for `gen-icons.mjs`. See
+`docs/CHROME_WEB_STORE_DEPLOY.md` for the full setup and release process.
 Proxy deploys via Vercel's git integration on push to `staging`/`main`,
 independent of extension versioning.
 

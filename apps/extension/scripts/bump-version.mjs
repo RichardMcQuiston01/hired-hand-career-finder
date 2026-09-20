@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifestPath = resolve(__dirname, '../public/manifest.json');
-const versionNamesPath = resolve(__dirname, '../../version_names.json');
+const versionNamesPath = resolve(__dirname, '../../../version_names.json');
 
 const arg = process.argv[2];
 const bumpMajor = arg === '--major';
