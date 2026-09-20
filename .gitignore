@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+*.tsbuildinfo
+
+# `next dev` auto-generates/rewrites these (apps/proxy) on every run —
+# framework boilerplate, not project docs.
+apps/proxy/AGENTS.md
+apps/proxy/CLAUDE.md
+
+# Extension packaging
+*.zip
+*.crx
+*.pem
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# Test coverage
+coverage/
+
+# Playwright e2e (apps/extension/e2e)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

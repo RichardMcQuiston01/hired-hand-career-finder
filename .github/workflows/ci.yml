@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+  push:
+    branches: [dev, staging, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, typecheck, test, build, a11y e2e, staging integration e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # Whole-page WCAG 2.1 A+AA axe gate (apps/extension/e2e), on top of the
+      # `jest-axe` unit tests included in `npm run test` above — this is the
+      # accessibility CI gate the development plan calls for, tightened to
+      # fail the build on any violation. GitHub-hosted runners don't have
+      # Playwright's browsers pre-installed, so install them explicitly
+      # (`--with-deps` also installs the system libraries Chromium needs).
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/extension
+
+      - name: Accessibility + keyboard-nav e2e
+        run: npm run test:e2e -w apps/extension
+
+      # Stage 6 (docs/DEVELOPMENT_PLAN.md): loads the real built, unpacked
+      # extension into a real Chromium extension context — real
+      # chrome.runtime/chrome.storage, a real background service worker, so
+      # `extpay` and chrome.runtime.getManifest() run unmodified — and runs
+      # it against the real apps/proxy server, not a mocked route handler.
+      # The only thing this can't exercise is the proxy's final hop to the
+      # real O*NET API, since neither this runner nor the sandbox this suite
+      # was built in have a real ONET_API key wired up for CI; a mock O*NET
+      # fixture server stands in for that (see
+      # apps/extension/e2e-integration/playwright.config.ts's top comment).
+      - name: Staging integration e2e (real extension + real proxy)
+        run: npm run test:e2e-integration -w apps/extension

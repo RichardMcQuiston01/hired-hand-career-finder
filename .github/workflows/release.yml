@@ -1,0 +1,125 @@
+name: Release
+
+# Publishes the extension to the Chrome Web Store on a version tag push.
+# See docs/CHROME_WEB_STORE_DEPLOY.md for the one-time setup and the
+# day-to-day release process.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Validate, build, and publish to the Chrome Web Store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify tag matches manifest version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MANIFEST_VERSION=$(node -p "require('./apps/extension/public/manifest.json').version")
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match apps/extension/public/manifest.json version $MANIFEST_VERSION. Run 'npm run bump-version -w apps/extension' and merge that before tagging."
+            exit 1
+          fi
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/extension
+
+      - name: Accessibility + keyboard-nav e2e
+        run: npm run test:e2e -w apps/extension
+
+      - name: Build extension
+        run: npm run build -w apps/extension
+
+      - name: Zip extension
+        working-directory: apps/extension/dist
+        run: zip -r "${{ github.workspace }}/hired-hand-career-finder-${{ github.ref_name }}.zip" .
+
+      - name: Exchange refresh token for an access token
+        id: auth
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -sS -X POST https://oauth2.googleapis.com/token \
+            -d "client_id=${CHROME_CLIENT_ID}" \
+            -d "client_secret=${CHROME_CLIENT_SECRET}" \
+            -d "refresh_token=${CHROME_REFRESH_TOKEN}" \
+            -d "grant_type=refresh_token")
+          ACCESS_TOKEN=$(node -p "JSON.parse(process.argv[1]).access_token || ''" "$RESPONSE")
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "::error::Failed to obtain an access token: $RESPONSE"
+            exit 1
+          fi
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to the Chrome Web Store
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -sS -X PUT \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "x-goog-api-version: 2" \
+            -T "hired-hand-career-finder-${{ github.ref_name }}.zip" \
+            "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${CHROME_EXTENSION_ID}")
+          echo "$RESPONSE"
+          STATE=$(node -p "JSON.parse(process.argv[1]).uploadState || ''" "$RESPONSE")
+          if [ "$STATE" != "SUCCESS" ]; then
+            echo "::error::Chrome Web Store upload did not succeed: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Publish on the Chrome Web Store
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "x-goog-api-version: 2" \
+            -H "Content-Length: 0" \
+            "https://www.googleapis.com/chromewebstore/v1.1/items/${CHROME_EXTENSION_ID}/publish")
+          echo "$RESPONSE"
+          STATUS=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).status || [])" "$RESPONSE")
+          if ! echo "$STATUS" | grep -q "OK"; then
+            echo "::error::Chrome Web Store publish did not succeed: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Attach the built zip to a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: hired-hand-career-finder-${{ github.ref_name }}.zip
+          generate_release_notes: true

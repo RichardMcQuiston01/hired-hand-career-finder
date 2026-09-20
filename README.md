@@ -1,16 +1,40 @@
-# Hired Hand:  Career Finder
+# Hired Hand: Career Finder
 
 ## Overview
 
 TypeScript based Chrome Extension incorporating functions O*NET API via the @richardmcquiston01/onet-library NPM library. Users can determine their optimum career using the Interest Profiler as well as find information on certificates, licenses, and more.
 
+See [`docs/DEVELOPMENT_PLAN.md`](./docs/DEVELOPMENT_PLAN.md) for the full
+architecture and staged build-out plan.
+
 ## Getting Started
 
 ### Prerequisites
 
+- [Node.js](https://nodejs.org/) 22.22.2+ (see `.nvmrc`)
+
 ### Installation
 
+```bash
+npm install
+```
+
+This is an npm workspaces monorepo: `apps/extension` (the Chrome extension),
+`apps/proxy` (the O\*NET API key proxy, added in Stage 1), and
+`packages/*` (shared TypeScript packages).
+
 ### Usage
+
+```bash
+npm run dev     # Vite dev server for the extension
+npm run build   # Production build -> apps/extension/dist
+npm run lint    # ESLint across the monorepo
+npm run test    # Vitest across the monorepo
+```
+
+To load the extension in Chrome: `npm run build`, then open
+`chrome://extensions`, enable Developer mode, and "Load unpacked" pointing at
+`apps/extension/dist`.
 
 ### Examples
 
@@ -28,4 +52,4 @@ Apache 2
 
 ## Copyright
 
-(c)2026 Richard McQuiston.  All rights reserved.
+(c)2026 Richard McQuiston. All rights reserved.
