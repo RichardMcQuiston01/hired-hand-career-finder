@@ -16,9 +16,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  *
  * Chromium only loads unpacked extensions via `launchPersistentContext`
  * (there is no non-persistent equivalent), and only in Chromium — Playwright
- * has no Firefox/WebKit extension support. Headless extension loading needs
- * the "new" headless mode (`--headless=new`), supported since Chromium 136;
- * the pinned `@playwright/test` browser here is newer than that.
+ * has no Firefox/WebKit extension support. `headless: false` here is
+ * deliberate, not a mistake: Playwright's own `headless: true` transparently
+ * substitutes the stripped-down "headless shell" Chromium build, which does
+ * not support extensions at all (the background service worker silently
+ * never registers). The documented way to run extension tests headlessly is
+ * to keep `headless: false` (so Playwright doesn't make that substitution)
+ * and instead pass Chromium's own `--headless=new` flag, which runs the
+ * *full* Chromium binary in its real headless mode.
  */
 export const EXTENSION_DIST_PATH = resolve(__dirname, '../../dist');
 
@@ -30,12 +35,17 @@ export const test = base.extend<{
   // eslint-disable-next-line no-empty-pattern
   context: async ({}, use) => {
     const context = await chromium.launchPersistentContext('', {
-      headless: true,
-      executablePath: '/opt/pw-browsers/chromium',
+      // See the class comment above — this is intentional, not `true`.
+      headless: false,
+      // No explicit `executablePath`: let Playwright resolve whichever
+      // Chromium it (or `npx playwright install`) put in place — this
+      // sandbox sets `PLAYWRIGHT_BROWSERS_PATH`, CI installs to Playwright's
+      // own default cache dir (see the `Install Playwright browsers` CI
+      // step), and hardcoding either path breaks the other.
       args: [
+        '--headless=new',
         `--disable-extensions-except=${EXTENSION_DIST_PATH}`,
         `--load-extension=${EXTENSION_DIST_PATH}`,
-        '--headless=new',
       ],
     });
     await use(context);
