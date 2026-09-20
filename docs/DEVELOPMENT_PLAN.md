@@ -26,10 +26,18 @@ Careers if useful.
 
 ## Key decisions (confirmed with user)
 
-- **API key delivery:** backend proxy. A Chrome extension's bundle is always
-  inspectable, so the O\*NET key must never ship client-side. A small serverless
-  proxy (Next.js API routes on Vercel) holds the key server-side; the extension
-  only ever talks to the proxy.
+- **API key delivery:** direct client-side call, no backend proxy. Stages
+  1–7 built and shipped a backend proxy on the assumption that the O\*NET
+  key needed to stay secret; **revisited in Stage 8** once the user clarified
+  the key isn't actually sensitive (O\*NET Web Services keys are free,
+  self-service, and not treated as confidential) — the only real concern is
+  not exceeding O\*NET's own rate limits, which a proxy doesn't meaningfully
+  solve without a durable, globally-shared store (real infrastructure this
+  project doesn't have) anyway. The extension now calls O\*NET directly,
+  with the key baked in at build time and `host_permissions` covering
+  O\*NET's origin (the standard MV3 mechanism for an extension-context fetch
+  to bypass a target server's CORS policy). See Stage 8 below for what that
+  removed and added.
 - **Monetization (v1):** Donate link (reuse existing Stripe link/QR) + an
   ExtensionPay-gated premium feature. No ads in v1.
 - **Data storage:** none required for v1. The proxy is stateless (rate-limited via
@@ -41,14 +49,15 @@ Careers if useful.
 
 ```
 apps/
-  extension/   Vite + React + TS + Tailwind, MV3 Side Panel extension
-  proxy/       Next.js API routes (Vercel) — holds ONET_API_KEY, rate limits, CORS-locked to the extension origin
+  extension/   Vite + React + TS + Tailwind, MV3 Side Panel extension — calls O*NET directly (Stage 8)
 packages/
-  onet-mnm-client/  typed fetch client (Zod-validated) for search/careers/interestprofiler, calls the proxy, never the key
+  onet-mnm-client/  typed fetch client (Zod-validated) for search/careers/interestprofiler
   shared/           shared TS types (RIASEC, Career, etc.)
 docs/
   DEVELOPMENT_PLAN.md  (this file)
 ```
+
+(`apps/proxy` existed from Stage 1 through Stage 7 and was removed in Stage 8 — see below.)
 
 Tooling: TypeScript strict mode, ESLint (Google TS Style Guide), Prettier,
 Vitest + React Testing Library + `jest-axe`, Playwright for E2E.
@@ -208,14 +217,65 @@ bypassing Next's HTTP routing layer) and the Stage 4 suite (which mocks the
 network entirely). This is exactly the class of bug Stage 6 exists to catch.
 Fixes land back through `dev`.
 
-**Stage 7 — Release**
-PR `staging → main`. Tag `vX.Y.Z` → `release.yml` publishes to the Chrome Web
-Store. First-ever submission needs a one-time manual store listing (icon,
-screenshots, privacy policy — note we store no PII, Interest Profiler answers
-are processed statelessly through the proxy) in the Developer Dashboard;
-subsequent version bumps publish via the API.
+**Stage 7 — Release** ✅ (`staging → main` merged; tag/publish still pending)
+PR `staging → main` merged. Tag `vX.Y.Z` → `release.yml` publishes to the
+Chrome Web Store. First-ever submission needs a one-time manual store
+listing (icon, screenshots, privacy policy — note we store no PII; Interest
+Profiler answers are scored client-side and never sent anywhere except
+directly to O\*NET as part of the results/careers lookup, same as any other
+query this extension makes) in the Developer Dashboard; subsequent version
+bumps publish via the API.
+
+**Stage 8 — Remove the backend proxy, call O\*NET directly**
+(`feature/remove-proxy-direct-onet`, off `dev`) User-directed architecture
+change after Stage 7: the O\*NET key isn't actually sensitive, so the
+backend proxy built in Stage 1 was pure complexity with no real payoff — see
+the "Key decisions" note above. Changes:
+
+- Deleted `apps/proxy` entirely.
+- `onet-mnm-client`: `createOnetMnmClient` takes an optional `apiKey`, sent
+  as `X-API-Key` on every request; `baseUrl` now points straight at
+  `https://api-v2.onetcenter.org`. Reverted the Stage 6 no-trailing-slash
+  fix on `listCareers`/`getCareerDetail` — that redirect-dropping-CORS bug
+  was specific to the proxy's Next.js catch-all route and doesn't exist
+  once there's no proxy in the path; O\*NET's own REST scheme wants the
+  trailing slash back.
+- `apps/extension/public/manifest.json`: added
+  `host_permissions: ["https://api-v2.onetcenter.org/*"]` — this is what
+  lets an extension-context `fetch` (side panel, options, background;
+  **not** a content script) bypass the target's CORS policy under MV3,
+  which is what makes calling O\*NET directly possible at all. This is
+  documented, long-standing Chrome extension platform behavior, but
+  **could not be verified against the live API from this sandbox** — its
+  Chromium instances have no working TLS trust for any outbound HTTPS at
+  all (a proxy/certificate limitation unrelated to CORS), so no live
+  external fetch, permissive-CORS or not, could be tested here. Worth a
+  manual smoke test in a real Chrome install before calling this fully
+  verified.
+- The O\*NET key is baked into the build at compile time via
+  `VITE_ONET_API_KEY` (see README.md and `release.yml`) and ships inside
+  the extension's inspectable bundle — intentional, not an oversight, per
+  the key decision above.
+- **Rate-limit mitigation, since there's no server left to do it
+  centrally:** `apps/extension/src/lib/cachingFetch.ts` wraps every O\*NET
+  call in a `localStorage`-backed response cache (O\*NET's own docs
+  recommend caching repeat requests; most of what this client asks for —
+  search terms, browsed occupations, the Interest Profiler's fixed
+  question sets — repeats heavily and barely changes) and a self-imposed
+  rate cap (20 calls/minute per browser profile). Both are necessarily
+  scoped to one installation — there's no way, without a server, to see or
+  limit what every user's install is doing in aggregate. That's an accepted
+  tradeoff, not a gap to close later.
+- Stage 6's `e2e-integration` suite no longer runs a real proxy server (there
+  is none); it now mocks O\*NET via `page.route`, same mechanism as the
+  Stage 4 suite, while still loading the real extension into a real
+  Chromium extension context. Added a real end-to-end regression test that
+  a repeated identical request is served from the cache rather than hitting
+  the network again.
 
 ## Immediate next step
 
-Stage 0 (`feature/repo-scaffold`) is unblocked and has no dependencies — start
-there.
+Stages 0–8 are done except: pushing the `vX.Y.Z` tag (needs the Chrome Web
+Store OAuth secrets and a first draft store listing — see
+`docs/CHROME_WEB_STORE_DEPLOY.md`), and the manual host_permissions/CORS
+smoke test called out in Stage 8 above.

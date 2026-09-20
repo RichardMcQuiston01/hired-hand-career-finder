@@ -56,12 +56,11 @@ jobs:
       # Stage 6 (docs/DEVELOPMENT_PLAN.md): loads the real built, unpacked
       # extension into a real Chromium extension context — real
       # chrome.runtime/chrome.storage, a real background service worker, so
-      # `extpay` and chrome.runtime.getManifest() run unmodified — and runs
-      # it against the real apps/proxy server, not a mocked route handler.
-      # The only thing this can't exercise is the proxy's final hop to the
-      # real O*NET API, since neither this runner nor the sandbox this suite
-      # was built in have a real ONET_API key wired up for CI; a mock O*NET
-      # fixture server stands in for that (see
-      # apps/extension/e2e-integration/playwright.config.ts's top comment).
-      - name: Staging integration e2e (real extension + real proxy)
+      # `extpay` and chrome.runtime.getManifest() run unmodified — including
+      # a real end-to-end check of the localStorage caching/rate-limit layer
+      # (apps/extension/src/lib/cachingFetch.ts). O*NET itself is mocked via
+      # page.route (see apps/extension/e2e-integration/playwright.config.ts's
+      # top comment) since this is the only part CI can't safely depend on a
+      # live third-party call for.
+      - name: Staging integration e2e (real extension context)
         run: npm run test:e2e-integration -w apps/extension

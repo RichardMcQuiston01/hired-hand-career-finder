@@ -19,9 +19,11 @@ architecture and staged build-out plan.
 npm install
 ```
 
-This is an npm workspaces monorepo: `apps/extension` (the Chrome extension),
-`apps/proxy` (the O\*NET API key proxy, added in Stage 1), and
-`packages/*` (shared TypeScript packages).
+This is an npm workspaces monorepo: `apps/extension` (the Chrome extension)
+and `packages/*` (shared TypeScript packages). The extension calls O*NET's
+Web Services API directly — there is no backend proxy; see
+[`docs/DEVELOPMENT_PLAN.md`](./docs/DEVELOPMENT_PLAN.md)'s "Key decisions"
+section for why.
 
 ### Usage
 
@@ -35,6 +37,14 @@ npm run test    # Vitest across the monorepo
 To load the extension in Chrome: `npm run build`, then open
 `chrome://extensions`, enable Developer mode, and "Load unpacked" pointing at
 `apps/extension/dist`.
+
+For Search/Browse/Interest Profiler to actually return data, set
+`VITE_ONET_API_KEY` (a free key from
+[O\*NET Web Services](https://services.onetcenter.org/)) before building:
+
+```bash
+VITE_ONET_API_KEY=your-onet-api-key npm run build -w apps/extension
+```
 
 ### Examples
 

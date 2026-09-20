@@ -55,6 +55,8 @@ jobs:
         run: npm run test:e2e -w apps/extension
 
       - name: Build extension
+        env:
+          VITE_ONET_API_KEY: ${{ secrets.ONET_API_KEY }}
         run: npm run build -w apps/extension
 
       - name: Zip extension
