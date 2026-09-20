@@ -1,15 +1,10 @@
 /**
  * Typed fetch client for the O*NET `/mnm` ("My Next Move") endpoints —
- * Career Search, Browse Careers, and the Interest Profiler. Calls O*NET's
- * real Web Services API directly (`baseUrl`, e.g.
- * `https://api-v2.onetcenter.org`), injecting `apiKey` as `X-API-Key` on
- * every request when provided. There is no backend proxy in this
- * architecture — see docs/DEVELOPMENT_PLAN.md's "Key decisions" section for
- * why (the O*NET key isn't treated as a secret; the only real concern is
- * not exceeding O*NET's own rate limits, which this package doesn't handle
- * itself — see `apps/extension/src/lib/cachingFetch.ts` for the
- * localStorage-backed caching/self-throttling layered on top of this client
- * in the extension).
+ * Career Search, Browse Careers, and the Interest Profiler. It always calls
+ * this project's own API proxy (`baseUrl`, e.g. ".../api/onet"), never
+ * O*NET directly, so there is no API key anywhere in this package. The
+ * proxy mirrors O*NET's real `/mnm/...` path structure 1:1 behind that
+ * prefix (see docs/DEVELOPMENT_PLAN.md).
  */
 import type { z } from 'zod';
 import type {
@@ -36,10 +31,12 @@ import {
 const ANSWERS_PATTERN = /^[12345]{30}([12345]{30})?$/;
 
 export interface OnetMnmClientOptions {
-  /** Base URL of the O*NET Web Services API, e.g. `https://api-v2.onetcenter.org`. */
+  /**
+   * Base URL of this project's own API proxy, e.g.
+   * `https://hired-hand-proxy.example.com/api/onet`. This must never point
+   * at O*NET's own servers — the proxy is what holds the API key.
+   */
   baseUrl: string;
-  /** Sent as the `X-API-Key` header on every request, if provided. */
-  apiKey?: string | undefined;
   /** Override for `fetch`, mainly so tests can mock `global.fetch`. Defaults to the ambient `fetch`. */
   fetchImpl?: typeof fetch;
 }
@@ -143,12 +140,7 @@ function assertValidAnswers(answers: string): void {
 /** Creates a typed client for this project's O*NET `/mnm` proxy. */
 export function createOnetMnmClient(options: OnetMnmClientOptions): OnetMnmClient {
   const baseUrl = options.baseUrl;
-  const baseFetch = options.fetchImpl ?? fetch;
-  const apiKey = options.apiKey;
-  const fetchImpl: typeof fetch = apiKey
-    ? (input, init) =>
-        baseFetch(input, { ...init, headers: { ...init?.headers, 'X-API-Key': apiKey } })
-    : baseFetch;
+  const fetchImpl = options.fetchImpl ?? fetch;
 
   return {
     async searchCareers({ keyword, start, end }) {
@@ -157,12 +149,21 @@ export function createOnetMnmClient(options: OnetMnmClientOptions): OnetMnmClien
     },
 
     async listCareers(params = {}) {
-      const url = buildUrl(baseUrl, '/mnm/careers/', { start: params.start, end: params.end });
+      // No trailing slash: the proxy's catch-all route 308-redirects a
+      // trailing-slash request to the slash-less form, and that redirect
+      // response carries no CORS headers, so a real browser fetch (unlike
+      // a same-process unit test calling the route handler directly) fails
+      // with an opaque CORS error rather than following it. Caught by the
+      // Stage 6 staging integration suite, which is the first layer to run
+      // a real HTTP round-trip through the real Next.js dev server instead
+      // of calling the route handler in-process or mocking the network.
+      const url = buildUrl(baseUrl, '/mnm/careers', { start: params.start, end: params.end });
       return fetchJson(fetchImpl, url, careerSearchResultSchema);
     },
 
     async getCareerDetail(code, section) {
-      const path = section ? `/mnm/careers/${code}/${section}` : `/mnm/careers/${code}/`;
+      // Same no-trailing-slash reasoning as `listCareers` above.
+      const path = section ? `/mnm/careers/${code}/${section}` : `/mnm/careers/${code}`;
       const url = buildUrl(baseUrl, path);
       return fetchJson(fetchImpl, url, careerDetailSchema);
     },

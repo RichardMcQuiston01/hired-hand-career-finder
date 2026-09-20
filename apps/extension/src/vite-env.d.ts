@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_ONET_BASE_URL?: string;
-  readonly VITE_ONET_API_KEY?: string;
+  readonly VITE_PROXY_BASE_URL?: string;
 }
 
 interface ImportMeta {

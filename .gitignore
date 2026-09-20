@@ -7,6 +7,11 @@ build/
 .next/
 *.tsbuildinfo
 
+# `next dev` auto-generates/rewrites these (apps/proxy) on every run —
+# framework boilerplate, not project docs.
+apps/proxy/AGENTS.md
+apps/proxy/CLAUDE.md
+
 # Extension packaging
 *.zip
 *.crx

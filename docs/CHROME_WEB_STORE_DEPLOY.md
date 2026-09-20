@@ -49,21 +49,15 @@ Copy the four values from `apps/extension/.env` into this repository's
 - `CHROME_CLIENT_SECRET`
 - `CHROME_REFRESH_TOKEN`
 
-Also add `ONET_API_KEY` (a free key from
-[O\*NET Web Services](https://services.onetcenter.org/)) — `release.yml`
-passes it to the build as `VITE_ONET_API_KEY` so the released extension can
-actually call O\*NET (see `docs/DEVELOPMENT_PLAN.md`'s Stage 8 for why this
-is baked into the build rather than held server-side).
-
 ### 4. First-ever submission
 
 The Publish API can only update an _existing_ store listing — it can't
 create the first one. Before the first tag push, manually create a draft
 listing in the Developer Dashboard with the built `apps/extension/dist`
 (zipped), icon, screenshots, and a privacy policy (this extension stores no
-PII — Interest Profiler answers are scored client-side and sent directly to
-O\*NET, the same as any other lookup this extension makes; there is no
-backend). Every release after that goes through `release.yml`.
+PII — Interest Profiler answers are scored client-side and O*NET lookups
+are proxied statelessly; see `apps/proxy/README.md`). Every release after
+that goes through `release.yml`.
 
 ## Day-to-day release process
 

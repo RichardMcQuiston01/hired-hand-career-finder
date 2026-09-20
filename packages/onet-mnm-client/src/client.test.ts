@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createOnetMnmClient } from './client';
 import { OnetClientError } from './errors';
 
-const BASE_URL = 'https://onet.example.test';
+const BASE_URL = 'https://proxy.example.test/api/onet';
 
 function jsonResponse(body: unknown, init: { status?: number } = {}): Response {
   const status = init.status ?? 200;
@@ -37,7 +37,7 @@ describe('searchCareers', () => {
     };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/mnm/search');
+      expect(url.pathname).toBe('/api/onet/mnm/search');
       expect(url.searchParams.get('keyword')).toBe('software');
       return jsonResponse(searchResult);
     });
@@ -51,7 +51,11 @@ describe('searchCareers', () => {
 });
 
 describe('listCareers', () => {
-  it('requests /mnm/careers/ (O*NET requires the trailing slash on the bare list endpoint)', async () => {
+  it('requests /mnm/careers with no trailing slash', async () => {
+    // A trailing slash here gets 308-redirected by the proxy's Next.js
+    // catch-all route, and that redirect response carries no CORS headers —
+    // silently breaking every real browser call (unit tests calling a
+    // mocked `fetch` can't catch this; only a real HTTP round-trip can).
     const listResult = {
       start: 1,
       end: 5,
@@ -66,7 +70,7 @@ describe('listCareers', () => {
     };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/mnm/careers/');
+      expect(url.pathname).toBe('/api/onet/mnm/careers');
       expect(url.searchParams.get('start')).toBe('1');
       expect(url.searchParams.get('end')).toBe('20');
       return jsonResponse(listResult);
@@ -89,7 +93,7 @@ describe('getCareerDetail', () => {
     };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/mnm/careers/15-1252.00/skills');
+      expect(url.pathname).toBe('/api/onet/mnm/careers/15-1252.00/skills');
       return jsonResponse(detail);
     });
 
@@ -103,7 +107,7 @@ describe('getCareerDetail', () => {
     const detail = { code: '15-1252.00', title: 'Software Developers' };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      expect(url.pathname).toBe('/mnm/careers/15-1252.00/');
+      expect(url.pathname).toBe('/api/onet/mnm/careers/15-1252.00');
       return jsonResponse(detail);
     });
 
@@ -143,11 +147,11 @@ describe('Interest Profiler results/careers round trip', () => {
 
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
-      if (url.pathname === '/mnm/interestprofiler/results') {
+      if (url.pathname === '/api/onet/mnm/interestprofiler/results') {
         expect(url.searchParams.get('answers')).toBe(answers);
         return jsonResponse(results);
       }
-      if (url.pathname === '/mnm/interestprofiler/careers') {
+      if (url.pathname === '/api/onet/mnm/interestprofiler/careers') {
         expect(url.searchParams.get('realistic')).toBe(String(results.realistic));
         expect(url.searchParams.get('zone')).toBe('3');
         return jsonResponse(careers);
@@ -182,36 +186,6 @@ describe('Interest Profiler results/careers round trip', () => {
       status: 400,
     });
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-});
-
-describe('apiKey option', () => {
-  it('sends X-API-Key on every request when an apiKey is provided', async () => {
-    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
-      expect(new Headers(init?.headers).get('X-API-Key')).toBe('test-key-123');
-      return jsonResponse({ start: 1, end: 1, total: 0, occupation: [] });
-    });
-
-    const client = createOnetMnmClient({
-      baseUrl: BASE_URL,
-      apiKey: 'test-key-123',
-      fetchImpl: fetchMock as typeof fetch,
-    });
-    await client.searchCareers({ keyword: 'nurse' });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('omits the header entirely when no apiKey is given', async () => {
-    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
-      expect(new Headers(init?.headers).has('X-API-Key')).toBe(false);
-      return jsonResponse({ start: 1, end: 1, total: 0, occupation: [] });
-    });
-
-    const client = createOnetMnmClient({ baseUrl: BASE_URL, fetchImpl: fetchMock as typeof fetch });
-    await client.searchCareers({ keyword: 'nurse' });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 

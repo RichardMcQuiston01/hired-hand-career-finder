@@ -56,11 +56,33 @@ jobs:
       # Stage 6 (docs/DEVELOPMENT_PLAN.md): loads the real built, unpacked
       # extension into a real Chromium extension context — real
       # chrome.runtime/chrome.storage, a real background service worker, so
-      # `extpay` and chrome.runtime.getManifest() run unmodified — including
-      # a real end-to-end check of the localStorage caching/rate-limit layer
-      # (apps/extension/src/lib/cachingFetch.ts). O*NET itself is mocked via
-      # page.route (see apps/extension/e2e-integration/playwright.config.ts's
-      # top comment) since this is the only part CI can't safely depend on a
-      # live third-party call for.
-      - name: Staging integration e2e (real extension context)
+      # `extpay` and chrome.runtime.getManifest() run unmodified — against
+      # the real `apps/proxy` Next.js server (not a mocked route handler),
+      # including a real end-to-end check of both the client-side
+      # localStorage caching layer (apps/extension/src/lib/cachingFetch.ts)
+      # and the proxy's own server-side cache/rate limiter
+      # (apps/proxy/src/lib). Only the final hop to the real O*NET API is
+      # replaced with a local fixture server (see
+      # apps/extension/e2e-integration/playwright.config.ts's top comment),
+      # since this sandbox/runner can't depend on a live third-party call.
+      - name: Staging integration e2e (real extension + real proxy)
         run: npm run test:e2e-integration -w apps/extension
+
+  docker-build:
+    name: Build apps/proxy Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Verifies the multi-stage build in apps/proxy/Dockerfile actually
+      # succeeds (npm workspaces install, Next.js `output: 'standalone'`
+      # build, non-root runner stage) — this is the image
+      # .github/workflows/deploy-proxy.yml builds and ships to the VPS on
+      # every deploy. Build-only: never pushed anywhere from here.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/proxy/Dockerfile
+          push: false
+          tags: hired-hand-proxy:ci

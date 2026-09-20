@@ -26,18 +26,16 @@ Careers if useful.
 
 ## Key decisions (confirmed with user)
 
-- **API key delivery:** direct client-side call, no backend proxy. Stages
-  1–7 built and shipped a backend proxy on the assumption that the O\*NET
-  key needed to stay secret; **revisited in Stage 8** once the user clarified
-  the key isn't actually sensitive (O\*NET Web Services keys are free,
-  self-service, and not treated as confidential) — the only real concern is
-  not exceeding O\*NET's own rate limits, which a proxy doesn't meaningfully
-  solve without a durable, globally-shared store (real infrastructure this
-  project doesn't have) anyway. The extension now calls O\*NET directly,
-  with the key baked in at build time and `host_permissions` covering
-  O\*NET's origin (the standard MV3 mechanism for an extension-context fetch
-  to bypass a target server's CORS policy). See Stage 8 below for what that
-  removed and added.
+- **API key delivery:** backend proxy. A Chrome extension's bundle is always
+  inspectable, so the O\*NET key must never ship client-side. A small proxy
+  holds the key server-side; the extension only ever talks to the proxy.
+  **Revisited in Stage 8:** the user later clarified key secrecy was never
+  actually the concern — O\*NET keys are free and self-service — only
+  staying under O\*NET's own rate limit was. That reopened whether the proxy
+  was worth keeping at all; it was, once a real, always-on host (the user's
+  own VPS, run as a single persistent Docker container rather than
+  serverless) made a genuine _global_ rate limiter and response cache
+  possible. See Stage 8 below.
 - **Monetization (v1):** Donate link (reuse existing Stripe link/QR) + an
   ExtensionPay-gated premium feature. No ads in v1.
 - **Data storage:** none required for v1. The proxy is stateless (rate-limited via
@@ -49,15 +47,14 @@ Careers if useful.
 
 ```
 apps/
-  extension/   Vite + React + TS + Tailwind, MV3 Side Panel extension — calls O*NET directly (Stage 8)
+  extension/   Vite + React + TS + Tailwind, MV3 Side Panel extension
+  proxy/       Next.js API routes, Dockerized (Stage 8), deployed on the user's own VPS — holds ONET_API_KEY, per-client + global rate limits, response caching, CORS-locked to the extension origin
 packages/
-  onet-mnm-client/  typed fetch client (Zod-validated) for search/careers/interestprofiler
+  onet-mnm-client/  typed fetch client (Zod-validated) for search/careers/interestprofiler, calls the proxy, never the key
   shared/           shared TS types (RIASEC, Career, etc.)
 docs/
   DEVELOPMENT_PLAN.md  (this file)
 ```
-
-(`apps/proxy` existed from Stage 1 through Stage 7 and was removed in Stage 8 — see below.)
 
 Tooling: TypeScript strict mode, ESLint (Google TS Style Guide), Prettier,
 Vitest + React Testing Library + `jest-axe`, Playwright for E2E.
@@ -220,62 +217,66 @@ Fixes land back through `dev`.
 **Stage 7 — Release** ✅ (`staging → main` merged; tag/publish still pending)
 PR `staging → main` merged. Tag `vX.Y.Z` → `release.yml` publishes to the
 Chrome Web Store. First-ever submission needs a one-time manual store
-listing (icon, screenshots, privacy policy — note we store no PII; Interest
-Profiler answers are scored client-side and never sent anywhere except
-directly to O\*NET as part of the results/careers lookup, same as any other
-query this extension makes) in the Developer Dashboard; subsequent version
-bumps publish via the API.
+listing (icon, screenshots, privacy policy — note we store no PII, Interest
+Profiler answers are processed statelessly through the proxy) in the
+Developer Dashboard; subsequent version bumps publish via the API.
 
-**Stage 8 — Remove the backend proxy, call O\*NET directly**
-(`feature/remove-proxy-direct-onet`, off `dev`) User-directed architecture
-change after Stage 7: the O\*NET key isn't actually sensitive, so the
-backend proxy built in Stage 1 was pure complexity with no real payoff — see
-the "Key decisions" note above. Changes:
+**Stage 8 — Harden and self-host the proxy on the user's own VPS (Docker)**
+(off `dev`) Revisited Stage 1's proxy after weighing two alternatives with
+the user: dropping it for a build-time key baked into the extension plus
+`host_permissions` (rejected — key secrecy was never actually the concern;
+staying under O\*NET's rate limit was, and a proxy protects that better than
+a client-only mitigation ever could), and hosting it serverless on
+Vercel/Supabase (rejected once the user pointed out they already pay for a
+VPS — a single persistent container makes a genuine _global_ rate limiter
+possible, which independent, ephemeral serverless instances can't offer).
+Landed on: keep the proxy, run it as one long-lived Docker container on the
+user's own VPS, and layer caching/rate-limiting on both sides of the wire.
 
-- Deleted `apps/proxy` entirely.
-- `onet-mnm-client`: `createOnetMnmClient` takes an optional `apiKey`, sent
-  as `X-API-Key` on every request; `baseUrl` now points straight at
-  `https://api-v2.onetcenter.org`. Reverted the Stage 6 no-trailing-slash
-  fix on `listCareers`/`getCareerDetail` — that redirect-dropping-CORS bug
-  was specific to the proxy's Next.js catch-all route and doesn't exist
-  once there's no proxy in the path; O\*NET's own REST scheme wants the
-  trailing slash back.
-- `apps/extension/public/manifest.json`: added
-  `host_permissions: ["https://api-v2.onetcenter.org/*"]` — this is what
-  lets an extension-context `fetch` (side panel, options, background;
-  **not** a content script) bypass the target's CORS policy under MV3,
-  which is what makes calling O\*NET directly possible at all. This is
-  documented, long-standing Chrome extension platform behavior, but
-  **could not be verified against the live API from this sandbox** — its
-  Chromium instances have no working TLS trust for any outbound HTTPS at
-  all (a proxy/certificate limitation unrelated to CORS), so no live
-  external fetch, permissive-CORS or not, could be tested here. Worth a
-  manual smoke test in a real Chrome install before calling this fully
-  verified.
-- The O\*NET key is baked into the build at compile time via
-  `VITE_ONET_API_KEY` (see README.md and `release.yml`) and ships inside
-  the extension's inspectable bundle — intentional, not an oversight, per
-  the key decision above.
-- **Rate-limit mitigation, since there's no server left to do it
-  centrally:** `apps/extension/src/lib/cachingFetch.ts` wraps every O\*NET
-  call in a `localStorage`-backed response cache (O\*NET's own docs
-  recommend caching repeat requests; most of what this client asks for —
-  search terms, browsed occupations, the Interest Profiler's fixed
-  question sets — repeats heavily and barely changes) and a self-imposed
-  rate cap (20 calls/minute per browser profile). Both are necessarily
-  scoped to one installation — there's no way, without a server, to see or
-  limit what every user's install is doing in aggregate. That's an accepted
-  tradeoff, not a gap to close later.
-- Stage 6's `e2e-integration` suite no longer runs a real proxy server (there
-  is none); it now mocks O\*NET via `page.route`, same mechanism as the
-  Stage 4 suite, while still loading the real extension into a real
-  Chromium extension context. Added a real end-to-end regression test that
-  a repeated identical request is served from the cache rather than hitting
-  the network again.
+- `apps/proxy/src/lib/rateLimit.ts`: added `checkGlobalRateLimit()` — a
+  second limiter alongside the existing per-client-IP one, keyed on a single
+  fixed key (`__global__`) instead of per-caller. This is only meaningful
+  because the proxy is now guaranteed to run as a single process rather than
+  independent serverless instances that would each track their own count;
+  env-tunable via `GLOBAL_RATE_LIMIT_MAX_REQUESTS` /
+  `GLOBAL_RATE_LIMIT_WINDOW_MS`.
+- `apps/proxy/src/lib/cache.ts` (new): an in-process response cache keyed by
+  upstream path + query string, checked before either rate limiter (a cache
+  hit costs nothing against the budget) — a long TTL for near-static
+  endpoints (the Interest Profiler's fixed question sets) and a shorter
+  default TTL for everything else, matching O\*NET's own documented
+  recommendation to cache repeat requests.
+- `apps/extension/src/lib/cachingFetch.ts` (new): a client-side,
+  `localStorage`-backed cache plus a self-imposed call budget (per the
+  user's explicit direction to use `localStorage` for both), wrapping
+  `onet-mnm-client`'s `fetchImpl`. This is a second, independent layer in
+  front of the proxy's own cache/limiter — it cuts real round-trips (and
+  load on the proxy) for repeat lookups within one browser profile, on top
+  of whatever the proxy does for the aggregate across all installs.
+- `apps/proxy/Dockerfile` (new): multi-stage build (deps/builder/runner) on
+  `node:22-alpine`, using Next.js's `output: 'standalone'` for a lean image,
+  non-root user. `docker-compose.yml` binds only to `127.0.0.1:3100` — the
+  VPS already runs other services, so this deliberately doesn't claim a
+  public port; an existing reverse proxy (nginx/Caddy) fronts it for real
+  HTTPS. See `docs/VPS_DEPLOY.md` for the one-time VPS setup and the
+  day-to-day deploy flow.
+- `.github/workflows/deploy-proxy.yml` (new): SSH-based deploy
+  (`appleboy/ssh-action`) to the VPS, using `VPS_HOST` / `VPS_USER` /
+  `VPS_SSH_KEY` (/ `VPS_SSH_PORT`) GitHub Actions secrets rather than
+  passing live credentials through chat or committing them anywhere — the
+  same trust model `release.yml` already uses for the Chrome Web Store
+  secrets.
+- Everything from Stages 1–7 that depended on the proxy (the
+  `onet-mnm-client` package's contract, the Stage 6 `e2e-integration`
+  suite's real-proxy `webServer`, `manifest.json`'s empty
+  `host_permissions`) is unchanged — this stage only adds caching,
+  rate-limiting, and a real deployment target; it doesn't touch the
+  client/proxy contract itself.
 
 ## Immediate next step
 
-Stages 0–8 are done except: pushing the `vX.Y.Z` tag (needs the Chrome Web
+Stages 0–8 are done except: the first VPS deploy (one-time Docker/reverse-proxy
+setup plus wiring the `deploy-proxy.yml` GitHub Actions secrets — see
+`docs/VPS_DEPLOY.md`), and pushing the `vX.Y.Z` tag (needs the Chrome Web
 Store OAuth secrets and a first draft store listing — see
-`docs/CHROME_WEB_STORE_DEPLOY.md`), and the manual host_permissions/CORS
-smoke test called out in Stage 8 above.
+`docs/CHROME_WEB_STORE_DEPLOY.md`).

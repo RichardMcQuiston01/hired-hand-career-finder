@@ -35,14 +35,15 @@ pages work fine served locally, which is simpler to set up.
    (The real extension's Side Panel and Options page render this same HTML;
    testing them as plain browser tabs is equivalent for screen reader
    purposes and much easier to set up than loading an unpacked extension.)
-5. Search/Browse/Interest Profiler call O*NET's real API directly and need a
-   real key to return data — set `VITE_ONET_API_KEY` (a free key from
-   [O\*NET Web Services](https://services.onetcenter.org/)) before the build
-   step above. Without one, you'll see error states (e.g. "Something went
-   wrong..."), which is fine for most of this script — screen reader
-   behavior around the chrome (skip link, tabs, forms, focus) doesn't depend
-   on real data — but Section 3 (the full Interest Profiler run) needs real
-   questions to answer.
+5. Because this serves the built pages directly rather than running behind
+   the real API proxy, Search/Browse/Interest Profiler network calls will
+   fail (you'll see error states, e.g. "Something went wrong..."). That's
+   expected and fine for most of this script — screen reader behavior around
+   the chrome (skip link, tabs, forms, focus) doesn't depend on real data.
+   Section 3 (the full Interest Profiler run) is the one part that needs
+   real questions to answer; if the proxy isn't reachable from your machine,
+   ask whoever owns `apps/proxy`'s deployment for a reachable URL and set
+   `VITE_PROXY_BASE_URL` to it before the build step above.
 
 **Browser/screen reader pairings to test** (per the development plan's
 accessibility baseline):

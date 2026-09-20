@@ -22,5 +22,5 @@
     "128": "icons/icon-128.png"
   },
   "permissions": ["sidePanel", "storage"],
-  "host_permissions": ["https://api-v2.onetcenter.org/*"]
+  "host_permissions": []
 }

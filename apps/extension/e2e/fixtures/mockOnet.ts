@@ -12,14 +12,14 @@ import {
 } from './mockData';
 
 /**
- * Intercepts every `onetClient` call — they all go directly to O*NET's real
- * API host (there is no backend proxy in this architecture; see
- * docs/DEVELOPMENT_PLAN.md's "Key decisions" section), which this sandbox
- * has no live network access to — and returns canned, schema-shaped JSON so
- * the pages render real populated states for the a11y scans.
+ * Intercepts every `onetClient` call (they all go through a path containing
+ * `/api/onet/`,
+ * whatever host `VITE_PROXY_BASE_URL` resolves to — this sandbox has no live
+ * network access to the real proxy) and returns canned, schema-shaped JSON
+ * so the pages render real populated states for the a11y scans.
  */
 export async function installOnetMocks(page: Page): Promise<void> {
-  await page.route('https://api-v2.onetcenter.org/**', async (route) => {
+  await page.route('**/api/onet/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
     const json = (body: unknown) =>
@@ -28,9 +28,12 @@ export async function installOnetMocks(page: Page): Promise<void> {
     if (path.endsWith('/mnm/search')) {
       return json(SEARCH_RESULTS);
     }
-    if (path.endsWith('/mnm/careers/')) {
+    if (path.endsWith('/mnm/careers')) {
       // Bare list endpoint (`listCareers`) — checked before the generic
       // `/mnm/careers/{code}/...` branch below, which this also matches.
+      // No trailing slash: the proxy's catch-all route 308-redirects a
+      // trailing-slash request (dropping CORS headers), so the client
+      // deliberately never sends one — see `onet-mnm-client/src/client.ts`.
       return json(BROWSE_LIST);
     }
     if (path.includes('/mnm/careers/')) {
