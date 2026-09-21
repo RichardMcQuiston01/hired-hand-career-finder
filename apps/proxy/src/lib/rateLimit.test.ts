@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { checkRateLimit, InMemoryRateLimiter } from './rateLimit';
+import { checkGlobalRateLimit, checkRateLimit, InMemoryRateLimiter } from './rateLimit';
 
 describe('InMemoryRateLimiter', () => {
   it('allows requests up to the limit, then denies with a positive retryAfterSeconds', () => {
@@ -54,5 +54,11 @@ describe('checkRateLimit', () => {
   it('delegates to a shared default limiter', () => {
     const key = `test-client-${Math.random()}`;
     expect(checkRateLimit(key).allowed).toBe(true);
+  });
+});
+
+describe('checkGlobalRateLimit', () => {
+  it('delegates to a shared limiter with a single fixed key, independent of client identity', () => {
+    expect(checkGlobalRateLimit().allowed).toBe(true);
   });
 });

@@ -60,6 +60,42 @@ test.describe('network guarantees', () => {
   });
 });
 
+test('repeat identical Career Search requests are served from the localStorage cache', async ({
+  page,
+  extensionId,
+}) => {
+  // `apps/extension/src/lib/cachingFetch.ts` wraps every proxy call in a
+  // localStorage-backed cache (see its own comment for the TTLs). This is
+  // the client-side layer sitting on top of the proxy's own server-side
+  // cache (`apps/proxy/src/lib/cache.ts`) — both exist because this proxy
+  // runs as a single VPS-hosted Docker container, not ephemeral serverless,
+  // so caching at either layer meaningfully cuts real O*NET traffic.
+  await page.goto(sidePanelUrl(extensionId));
+  await page.getByPlaceholder('Search careers, e.g. nurse').fill('nurse');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await expect(page.getByText('3 results for "nurse"')).toBeVisible();
+
+  // Reload the same chrome-extension:// origin — localStorage persists
+  // across it in this persistent context, so a fresh page load doesn't
+  // clear the cache the way a fresh browser profile would.
+  await page.reload();
+  const searchRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes(`:${PROXY_PORT}/api/onet/mnm/search`)) {
+      searchRequests.push(request.url());
+    }
+  });
+
+  await page.getByPlaceholder('Search careers, e.g. nurse').fill('nurse');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await expect(page.getByText('3 results for "nurse"')).toBeVisible();
+
+  expect(
+    searchRequests,
+    'an identical repeat search should be served from the localStorage cache, not a second proxy round-trip',
+  ).toHaveLength(0);
+});
+
 test('Browse Careers: real proxy round-trip for the list and a detail section', async ({
   page,
   extensionId,
