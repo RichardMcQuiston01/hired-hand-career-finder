@@ -1,0 +1,19 @@
+# Deploys the O*NET proxy as a single container on a VPS. See
+# docs/VPS_DEPLOY.md for the one-time setup and day-to-day deploy process.
+#
+# Binds only to 127.0.0.1 — this VPS likely already runs other services, so
+# this deliberately doesn't claim a public port itself. Point your existing
+# reverse proxy (nginx, Caddy, etc.) at 127.0.0.1:3100 for a real HTTPS
+# endpoint; docs/VPS_DEPLOY.md has a worked example for both.
+services:
+  proxy:
+    build:
+      context: ../..
+      dockerfile: apps/proxy/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3100:3000'
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
