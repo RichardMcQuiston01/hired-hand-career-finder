@@ -1,19 +1,33 @@
 # Deploys the O*NET proxy as a single container on a VPS. See
 # docs/VPS_DEPLOY.md for the one-time setup and day-to-day deploy process.
 #
-# Binds only to 127.0.0.1 — this VPS likely already runs other services, so
-# this deliberately doesn't claim a public port itself. Point your existing
-# reverse proxy (nginx, Caddy, etc.) at 127.0.0.1:3100 for a real HTTPS
-# endpoint; docs/VPS_DEPLOY.md has a worked example for both.
+# Binds to 127.0.0.1:3100 for local/host-level debugging (curl from the VPS
+# itself), but the real public route is via the `hired-hand-net` Docker
+# network below: this VPS's existing reverse proxy (Caddy, as of writing —
+# see docs/VPS_DEPLOY.md) reaches this container directly by its container
+# name over that shared network, since a container's own `127.0.0.1` can't
+# reach the host's `127.0.0.1` the way a host-level nginx/Caddy process
+# could.
 services:
   proxy:
     build:
       context: ../..
       dockerfile: apps/proxy/Dockerfile
+    container_name: hired-hand-proxy
     restart: unless-stopped
     ports:
       - '127.0.0.1:3100:3000'
+    networks:
+      - hired-hand-net
     env_file:
       - .env
     environment:
       NODE_ENV: production
+
+networks:
+  # External: created once on the VPS (`docker network create hired-hand-net`)
+  # and joined by both this container and the existing reverse proxy
+  # container, rather than owned by either project's compose file. See
+  # docs/VPS_DEPLOY.md for the one-time setup.
+  hired-hand-net:
+    external: true
