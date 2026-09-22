@@ -2,6 +2,10 @@
 
 **Last updated:** 2026-09-22
 
+**Published at:** <https://hiredhandhq.com/career-finder/privacy-policy/> (this
+file is the source content; the live page is maintained in the
+`hiredhandhq-site` repo — keep the two in sync)
+
 Hired Hand: Career Finder ("the extension") is a Chrome extension that helps
 you search, browse, and explore career and occupation data from O\*NET, and
 take a career-interest (RIASEC) assessment. This page explains what data the
@@ -103,4 +107,4 @@ the new version will be posted at this same location.
 
 ## Contact
 
-Questions about this privacy policy can be sent to: [CONTACT EMAIL]
+Questions about this privacy policy can be sent to: mcqforyoudesign@gmail.com
