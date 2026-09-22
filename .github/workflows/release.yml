@@ -55,6 +55,15 @@ jobs:
         run: npm run test:e2e -w apps/extension
 
       - name: Build extension
+        env:
+          # Not a secret — this is the proxy's own public URL, baked into
+          # the built bundle so the released extension knows where to send
+          # its API calls. Unset, onetClient.ts falls back to
+          # http://localhost:3000/api/onet, which would make a published
+          # extension completely non-functional. See docs/VPS_DEPLOY.md for
+          # how this proxy is deployed and docs/DEVELOPMENT_PLAN.md's "Known
+          # gaps" section for the history here.
+          VITE_PROXY_BASE_URL: https://onet-proxy.hiredhandhq.com/api/onet
         run: npm run build -w apps/extension
 
       - name: Zip extension

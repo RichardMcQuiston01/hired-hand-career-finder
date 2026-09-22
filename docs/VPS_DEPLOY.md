@@ -60,9 +60,12 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
    into the `VPS_SSH_KEY` GitHub secret below. Never paste it into a chat,
    issue, or commit.
 
-6. **Point your existing reverse proxy** at this container. Which approach
-   depends on whether that reverse proxy runs directly on the VPS (a host
-   process/systemd service) or is itself in a Docker container:
+6. **Point your existing reverse proxy** at this container. The production
+   hostname is `onet-proxy.hiredhandhq.com` (DNS `A` record already points it
+   at this VPS — see the GitHub Actions secrets table below for where that
+   value also has to match). Which approach depends on whether that reverse
+   proxy runs directly on the VPS (a host process/systemd service) or is
+   itself in a Docker container:
 
    **Reverse proxy runs on the host** (a real nginx/Caddy systemd service,
    not containerized): it can reach the container at `127.0.0.1:3100`
@@ -72,7 +75,7 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
    ```nginx
    server {
        listen 443 ssl;
-       server_name onet-proxy.your-domain.com;
+       server_name onet-proxy.hiredhandhq.com;
 
        location / {
            proxy_pass http://127.0.0.1:3100;
@@ -84,11 +87,11 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
    ```
 
    (Issue a TLS cert for that hostname the same way you already do for this
-   VPS's other sites, e.g. `certbot --nginx`.) A Caddy `Caddyfile` is even
-   shorter:
+   VPS's other sites, e.g. `certbot --nginx -d onet-proxy.hiredhandhq.com`.)
+   A Caddy `Caddyfile` is even shorter:
 
    ```
-   onet-proxy.your-domain.com {
+   onet-proxy.hiredhandhq.com {
        reverse_proxy 127.0.0.1:3100
    }
    ```
