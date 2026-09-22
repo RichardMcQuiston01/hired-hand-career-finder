@@ -63,12 +63,15 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
 6. **Point your existing reverse proxy** (nginx, Caddy, or whatever this VPS
    already runs for its other sites) at `127.0.0.1:3100` — `docker-compose.yml`
    deliberately only binds to localhost, since this VPS likely already
-   claims the public ports. A worked nginx example:
+   claims the public ports. The production hostname is
+   `onet-proxy.hiredhandhq.com` (DNS `A` record already points it at this
+   VPS — see the GitHub Actions secrets table below for where that value
+   also has to match). A worked nginx example:
 
    ```nginx
    server {
        listen 443 ssl;
-       server_name onet-proxy.your-domain.com;
+       server_name onet-proxy.hiredhandhq.com;
 
        location / {
            proxy_pass http://127.0.0.1:3100;
@@ -80,11 +83,11 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
    ```
 
    (Issue a TLS cert for that hostname the same way you already do for this
-   VPS's other sites, e.g. `certbot --nginx`.) A Caddy `Caddyfile` is even
-   shorter:
+   VPS's other sites, e.g. `certbot --nginx -d onet-proxy.hiredhandhq.com`.)
+   A Caddy `Caddyfile` is even shorter:
 
    ```
-   onet-proxy.your-domain.com {
+   onet-proxy.hiredhandhq.com {
        reverse_proxy 127.0.0.1:3100
    }
    ```
