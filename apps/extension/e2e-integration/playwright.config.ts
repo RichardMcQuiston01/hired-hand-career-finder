@@ -14,8 +14,8 @@ const PROXY_DIR = resolve(__dirname, '../../proxy');
  *
  *   - loads the real built, unpacked extension into a real Chromium
  *     extension context (see `fixtures/extension.ts`) — real
- *     `chrome.runtime`/`chrome.storage`, a real background service worker,
- *     so `extpay` runs unmodified instead of being stubbed out;
+ *     `chrome.runtime`/`chrome.storage` and a real background service
+ *     worker, instead of the Stage 4 stub;
  *   - runs the real `apps/proxy` Next.js server (not a mocked route handler)
  *     against a local fixture server standing in for the real O*NET API
  *     (`fixtures/mock-onet-server.mjs`), since this sandbox cannot reach
