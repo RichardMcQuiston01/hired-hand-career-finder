@@ -53,14 +53,6 @@ parties.
   stay within O\*NET's rate limits; neither is tied to you individually
   beyond your IP address being used momentarily to apply a per-client rate
   limit, which is not logged or stored.
-- **Optional paid upgrade.** Exporting your Interest Profiler results (as
-  CSV or a printed PDF) is gated behind a one-time optional upgrade,
-  processed by [ExtensionPay](https://extensionpay.com), a third-party
-  payment service. If you choose to upgrade, you're taken to ExtensionPay's
-  own hosted checkout page — the extension never sees or handles your
-  payment details itself. See
-  [ExtensionPay's privacy policy](https://extensionpay.com/privacy.html) for
-  how they handle payment information.
 - **Donate link.** The extension's Options page includes an optional,
   external donation link (Stripe). Following it takes you to Stripe's own
   site; the extension does not collect anything related to donations.

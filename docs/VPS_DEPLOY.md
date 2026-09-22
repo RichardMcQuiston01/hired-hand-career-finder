@@ -60,13 +60,17 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
    into the `VPS_SSH_KEY` GitHub secret below. Never paste it into a chat,
    issue, or commit.
 
-6. **Point your existing reverse proxy** (nginx, Caddy, or whatever this VPS
-   already runs for its other sites) at `127.0.0.1:3100` — `docker-compose.yml`
-   deliberately only binds to localhost, since this VPS likely already
-   claims the public ports. The production hostname is
-   `onet-proxy.hiredhandhq.com` (DNS `A` record already points it at this
-   VPS — see the GitHub Actions secrets table below for where that value
-   also has to match). A worked nginx example:
+6. **Point your existing reverse proxy** at this container. The production
+   hostname is `onet-proxy.hiredhandhq.com` (DNS `A` record already points it
+   at this VPS — see the GitHub Actions secrets table below for where that
+   value also has to match). Which approach depends on whether that reverse
+   proxy runs directly on the VPS (a host process/systemd service) or is
+   itself in a Docker container:
+
+   **Reverse proxy runs on the host** (a real nginx/Caddy systemd service,
+   not containerized): it can reach the container at `127.0.0.1:3100`
+   (`docker-compose.yml` publishes that port to the host's loopback
+   specifically for this). A worked nginx example:
 
    ```nginx
    server {
@@ -91,6 +95,29 @@ These steps assume a Debian/Ubuntu-style VPS with SSH access you control
        reverse_proxy 127.0.0.1:3100
    }
    ```
+
+   **Reverse proxy is itself a Docker container** (e.g. a `caddy:2-alpine`
+   container already running for another project): its own `127.0.0.1`
+   means "itself," not the host, so `127.0.0.1:3100` won't reach anything
+   from inside it. Put both containers on a shared Docker network instead,
+   and reference this container by name:
+
+   ```bash
+   # One-time: create a network neither project's compose file owns.
+   docker network create hired-hand-net
+   ```
+
+   This repo's `apps/proxy/docker-compose.yml` already joins
+   `hired-hand-net` (external, and names the container `hired-hand-proxy`).
+   Add the same external network to the _other_ project's reverse-proxy
+   service too, and reference `hired-hand-proxy:3000` (the container's
+   name and its internal port, not `3100`, since traffic between
+   containers on the same Docker network never goes through the published
+   host port at all) in its config. For a Caddy container currently
+   launched with a one-off `command: ["caddy", "reverse-proxy", "--from",
+"...", "--to", "..."]` (no general-purpose `Caddyfile`), switch it to a
+   real `Caddyfile` so it can serve more than one site — see that project's
+   own docs/compose file for the exact edit, since it's outside this repo.
 
 7. **First manual start**, to confirm everything above actually works before
    wiring up CI:

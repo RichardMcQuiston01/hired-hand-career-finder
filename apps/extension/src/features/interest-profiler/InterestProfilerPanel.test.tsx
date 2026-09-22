@@ -23,17 +23,6 @@ vi.mock('../../lib/onetClient', () => ({
   },
 }));
 
-// The results view renders <ExportResults>, which creates its own ExtPay
-// client — mocked here (never hitting extensionpay.com) purely so this
-// panel's own tests can render the results view. See ExportResults.test.tsx
-// for coverage of the export/paywall behavior itself.
-vi.mock('../../lib/extpay', () => ({
-  createExtPayClient: vi.fn(() => ({
-    getUser: vi.fn(() => new Promise(() => {})), // never resolves; stays in "checking" state
-    openPaymentPage: vi.fn(),
-  })),
-}));
-
 const mockedClient = vi.mocked(onetClient, true);
 
 const LIKERT_LABELS = ['Strongly Dislike', 'Dislike', 'Unsure', 'Like', 'Strongly Like'];

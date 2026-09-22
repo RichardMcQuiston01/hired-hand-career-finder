@@ -125,15 +125,8 @@ test('Interest Profiler: complete the short form end-to-end through the real pro
   // real proxy round-trip, not a page.route stub.
   await expect(page.getByText('Registered Nurses')).toBeVisible();
 
-  // Real ExtensionPay client in a real extension context (not the Stage 4
-  // chrome-stub + page.route mock) — extensionpay.com is unreachable from
-  // this sandbox, same as api-v2.onetcenter.org. Verified this degrades
-  // gracefully to the unpaid state rather than hanging or crashing the
-  // panel: `extpay.getUser()` resolves locally rather than throwing when
-  // its network call fails, so the real paywall UI renders normally.
-  await expect(
-    page.getByText('Export your results as CSV or PDF with a one-time upgrade.'),
-  ).toBeVisible();
+  // Export is free, no paywall or third-party payment client involved.
+  await expect(page.getByRole('button', { name: /export as csv/i })).toBeVisible();
 });
 
 test('Options page: donate link is real and About reads the real manifest', async ({

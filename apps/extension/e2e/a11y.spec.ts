@@ -4,15 +4,14 @@
  * issues within one rendered component; this catches issues that only show
  * up in the fully assembled page — duplicate ids across components sharing
  * a page, landmark structure, real cross-component tab order — with the
- * onetClient/extpay network calls intercepted so every meaningful state
- * (idle, populated, error-free, paid/unpaid) actually renders instead of
- * only ever showing an empty or error state.
+ * onetClient network calls intercepted so every meaningful state (idle,
+ * populated, error-free) actually renders instead of only ever showing an
+ * empty or error state.
  */
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { installChromeStub } from './fixtures/chromeStub';
 import { installOnetMocks } from './fixtures/mockOnet';
-import { installExtPayMocks } from './fixtures/extpay';
 import { blockExternalFonts } from './fixtures/network';
 import { completeShortAssessment } from './fixtures/interestProfiler';
 
@@ -95,26 +94,10 @@ test.describe('Side panel — Interest Profiler tab', () => {
     await expectNoAxeViolations(page);
   });
 
-  test('results view, unpaid paywall state', async ({ page }) => {
+  test('results view, export actions visible', async ({ page }) => {
     await completeShortAssessment(page);
-    await expect(
-      page.getByText('Export your results as CSV or PDF with a one-time upgrade.'),
-    ).toBeVisible();
-    await expectNoAxeViolations(page);
-  });
-});
-
-test.describe('Side panel — Interest Profiler results, paid export state', () => {
-  test('results view, paid export state', async ({ page }) => {
-    await installChromeStub(page, { extPayApiKeySeed: 'e2e-fake-key' });
-    await installExtPayMocks(page, { paid: true });
-    await installOnetMocks(page);
-    await blockExternalFonts(page);
-    await page.goto('/src/sidepanel/index.html');
-    await page.getByRole('tab', { name: 'Interest Profiler' }).click();
-
-    await completeShortAssessment(page);
-    await expect(page.getByText('Export unlocked. Download or print your results.')).toBeVisible();
+    await expect(page.getByRole('button', { name: /export as csv/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /print.*pdf/i })).toBeVisible();
     await expectNoAxeViolations(page);
   });
 });
