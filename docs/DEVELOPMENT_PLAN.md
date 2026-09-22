@@ -67,15 +67,16 @@ logo assets — read `project/README.md` and `project/tokens.json` there for
 the full brand book; only the subset this extension currently uses is wired
 into `apps/extension/src/index.css`).
 
-Hired Hand is the brand behind this extension and its sibling, [Job
-Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension).
-Both share **the same fixed cowhand-with-phone lockup** — the guide is
-explicit that the mark is not token-driven and must not be recolored per
-product, so Career Finder does not get its own tinted variant; the two
-extensions are told apart by name and in-product context, not by the icon.
-`apps/extension/public/icons/*.png` are the real mark (cropped from the
-brand system's uploaded asset), not placeholders — replace them only if the
-brand system's logo asset changes.
+Hired Hand is the brand behind three Chrome extensions — this one, [Job
+Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension),
+and a resume builder. They originally shared the exact same fixed
+cowhand-with-phone lockup with no per-product variation. **Superseded**: each
+extension now gets its own badged variant of the mark (this one adds a
+magnifying glass, signaling "search/find") so the icon itself distinguishes
+the products, not just their names — still the same base mark, not
+recolored, just with a small product-specific badge added.
+`apps/extension/public/icons/*.png` are the real per-product icon (not a
+placeholder) — replace them only if this extension's icon changes again.
 
 Color (light/dark pairs), type (Inter/Space Grotesk/JetBrains Mono via
 Google Fonts), spacing, and radius tokens come from `tokens.json` in that
