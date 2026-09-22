@@ -69,7 +69,7 @@ any server. Printing to PDF uses your browser's own built-in print function.
 In both cases, the exported file exists only on your device; we never
 receive a copy.
 
-## What the extension does *not* do
+## What the extension does _not_ do
 
 - No accounts, sign-up, or login.
 - No collection of personally identifiable information (name, address,
