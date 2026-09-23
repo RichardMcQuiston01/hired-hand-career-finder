@@ -11,7 +11,7 @@
     "test": "vitest run",
     "pretest:e2e": "npm run build",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "pretest:e2e-integration": "VITE_ONET_API_KEY=e2e-test-key-not-a-real-secret npm run build",
+    "pretest:e2e-integration": "npm run build",
     "test:e2e-integration": "playwright test --config e2e-integration/playwright.config.ts",
     "bump-version": "node scripts/bump-version.mjs",
     "gen-icons": "node scripts/gen-icons.mjs"
@@ -19,7 +19,6 @@
   "dependencies": {
     "@hired-hand/onet-mnm-client": "*",
     "@hired-hand/shared": "*",
-    "extpay": "^3.1.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
