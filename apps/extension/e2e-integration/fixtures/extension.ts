@@ -9,10 +9,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * real Chromium persistent context — not a `vite preview` tab with a
  * `chrome.*` stub (that's the Stage 4 `apps/extension/e2e/` layer). This
  * gets a real `chrome.runtime`, a real background service worker, and a
- * real `chrome-extension://` origin, so `extpay` (which throws at
- * module-load time without a genuine `chrome.runtime.id`) and
- * `chrome.storage`/`chrome.runtime.getManifest()` all run unmodified,
- * exactly as they would once installed.
+ * real `chrome-extension://` origin, so `chrome.storage`/
+ * `chrome.runtime.getManifest()` all run unmodified, exactly as they would
+ * once installed.
  *
  * Chromium only loads unpacked extensions via `launchPersistentContext`
  * (there is no non-persistent equivalent), and only in Chromium — Playwright

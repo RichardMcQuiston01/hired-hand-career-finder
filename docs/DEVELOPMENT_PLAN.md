@@ -36,12 +36,14 @@ Careers if useful.
   own VPS, run as a single persistent Docker container rather than
   serverless) made a genuine _global_ rate limiter and response cache
   possible. See Stage 8 below.
-- **Monetization (v1):** Donate link (reuse existing Stripe link/QR) + an
-  ExtensionPay-gated premium feature. No ads in v1.
-- **Data storage:** none required for v1. The proxy is stateless (rate-limited via
-  KV, not a database); ExtensionPay handles its own billing state. If a future
-  phase adds saved history/accounts, that's where Prisma + Postgres (UUID PKs,
-  snake_case columns, `created_at`/`updated_at`) comes in — deferred until needed.
+- **Monetization (v1):** Donate link (reuse existing Stripe link/QR) only. An
+  ExtensionPay-gated premium feature (CSV/PDF export) was built in Stage 3 and
+  later removed — the user decided against using ExtensionPay, so exporting
+  Interest Profiler results is a free feature with no paywall. No ads in v1.
+- **Data storage:** none required for v1. The proxy is stateless (rate-limited
+  via an in-memory counter, not a database). If a future phase adds saved
+  history/accounts, that's where Prisma + Postgres (UUID PKs, snake_case
+  columns, `created_at`/`updated_at`) comes in — deferred until needed.
 
 ## Repo layout (npm workspaces monorepo)
 
@@ -67,15 +69,16 @@ logo assets — read `project/README.md` and `project/tokens.json` there for
 the full brand book; only the subset this extension currently uses is wired
 into `apps/extension/src/index.css`).
 
-Hired Hand is the brand behind this extension and its sibling, [Job
-Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension).
-Both share **the same fixed cowhand-with-phone lockup** — the guide is
-explicit that the mark is not token-driven and must not be recolored per
-product, so Career Finder does not get its own tinted variant; the two
-extensions are told apart by name and in-product context, not by the icon.
-`apps/extension/public/icons/*.png` are the real mark (cropped from the
-brand system's uploaded asset), not placeholders — replace them only if the
-brand system's logo asset changes.
+Hired Hand is the brand behind three Chrome extensions — this one, [Job
+Application Assistant](https://github.com/RichardMcQuiston01/hired-hand-extension),
+and a resume builder. They originally shared the exact same fixed
+cowhand-with-phone lockup with no per-product variation. **Superseded**: each
+extension now gets its own badged variant of the mark (this one adds a
+magnifying glass, signaling "search/find") so the icon itself distinguishes
+the products, not just their names — still the same base mark, not
+recolored, just with a small product-specific badge added.
+`apps/extension/public/icons/*.png` are the real per-product icon (not a
+placeholder) — replace them only if this extension's icon changes again.
 
 Color (light/dark pairs), type (Inter/Space Grotesk/JetBrains Mono via
 Google Fonts), spacing, and radius tokens come from `tokens.json` in that
@@ -142,9 +145,9 @@ ESLint/Prettier, Vitest wiring, base CI (lint/typecheck/test), create `dev` and
 - Agent G — `feature/donate-block`: Support section in Options/side-panel
   footer using the existing `donate.svg`/Stripe link.
 - Agent H — `feature/extensionpay`: ExtensionPay SDK integration, paywall UI,
-  restore-purchase flow, gating one concrete premium feature (proposed in that
-  PR for sign-off, e.g. exporting Interest Profiler results or an unlimited
-  saved-career shortlist).
+  restore-purchase flow, gating one concrete premium feature (exporting
+  Interest Profiler results as CSV/PDF). **Removed in Stage 9** — the user
+  decided against using ExtensionPay; export is now a free feature.
 
 **Stage 4 — Accessibility & QA hardening** (from `dev`, after Stage 2/3 merge)
 `feature/a11y-hardening`: full WCAG 2.1 AA pass — automated (axe/Lighthouse CI
@@ -180,15 +183,16 @@ Stage 4 `apps/extension/e2e/` whole-page a11y suite (which mocks
 tab). This one loads the real built, unpacked extension into a real
 Chromium extension context (`--load-extension`, headless via Chromium's
 "new" headless mode) — a real `chrome.runtime`, a real background service
-worker, so `extpay` and `chrome.runtime.getManifest()` run unmodified
-instead of being stubbed — and runs it against the real `apps/proxy` Next.js
-server, not an in-process mock of the route handler. Confirms: Search,
-Browse (list + detail), and the Interest Profiler complete end-to-end
-through a real HTTP round-trip to the real proxy; the extension never calls
+worker, so `chrome.runtime.getManifest()` runs unmodified instead of being
+stubbed — and runs it against the real `apps/proxy` Next.js server, not an
+in-process mock of the route handler. Confirms: Search, Browse (list +
+detail), and the Interest Profiler complete end-to-end through a real HTTP
+round-trip to the real proxy; the extension never calls
 `api-v2.onetcenter.org` directly and the API key never appears in any
 request the browser makes nor anywhere in the built `dist/` bundle; the
-donate link is real; ExtensionPay degrades gracefully to the unpaid paywall
-state rather than hanging or crashing when its own remote check fails.
+donate link is real. (At the time this suite was first written, it also
+verified ExtensionPay degraded gracefully to the unpaid paywall state —
+moot since Stage 9 removed ExtensionPay entirely.)
 
 **What's genuinely live vs. mocked:** this sandbox cannot reach
 `api-v2.onetcenter.org` (org policy blocks the egress — same restriction
@@ -273,10 +277,49 @@ user's own VPS, and layer caching/rate-limiting on both sides of the wire.
   rate-limiting, and a real deployment target; it doesn't touch the
   client/proxy contract itself.
 
+**Stage 9 — Remove ExtensionPay; Career Finder gets its own icon**
+(off `dev`) Two independent, unrelated cleanups landed together:
+
+- The user decided against using ExtensionPay at all (Stage 3's monetization
+  plan) — removed the `extpay` npm dependency, `src/lib/extpay.ts`,
+  `ExtPay(...).startBackground()` from the background service worker, and
+  the paywall/upgrade UI from `ExportResults.tsx`. Exporting Interest
+  Profiler results (CSV download, browser print-to-PDF) is now unconditional
+  — no account, no check, no gating. The only monetization left is the
+  existing Options-page donate link. Test fixtures that only existed to mock
+  ExtensionPay (`e2e/fixtures/extpay.ts`, the `extPayApiKeySeed` option on
+  `installChromeStub`, `chrome.storage.local` support in the stub) were
+  removed along with it — `chrome.storage.session` (Interest Profiler
+  in-progress answers) is the only storage API the extension still uses.
+- Each of the three Hired Hand extensions now gets its own badged variant of
+  the shared cowhand-with-phone mark instead of one fixed unmodified icon
+  across all three — see the Branding section above.
+
+## Known gaps before this can actually be published (not yet closed)
+
+These were found during a readiness audit and are **not** yet fixed — call
+them out explicitly rather than assuming "done" means "shippable":
+
+- **`VITE_PROXY_BASE_URL` is never set for the release build.**
+  `apps/extension/src/lib/onetClient.ts` falls back to
+  `http://localhost:3000/api/onet` when it's unset, and `release.yml`'s
+  "Build extension" step never sets it. Publishing right now would ship an
+  extension that can't reach any proxy at all for real users. Needs: a real
+  public HTTPS domain for the deployed proxy, and `release.yml` updated to
+  build with `VITE_PROXY_BASE_URL` pointed at it.
+- **The proxy has never successfully deployed.** Both `deploy-proxy.yml`
+  runs so far failed (a `VPS_DEPLOY_PATH` misconfiguration, since corrected)
+  and it hasn't been re-run since. No confirmed-live proxy exists yet.
+- **`apps/proxy/.env`'s `ALLOWED_EXTENSION_ORIGINS`** on the VPS needs to be
+  the real `chrome-extension://<published-extension-id>` origin, not the
+  `.env.example` placeholder, or the proxy's own CORS check will block the
+  real published extension.
+- **`main` is a few commits behind `dev`** (at minimum the Stage 9 changes
+  above, plus the privacy policy doc) — needs `dev → staging → main`
+  promoted before tagging a release, or the tag builds stale code.
+
 ## Immediate next step
 
-Stages 0–8 are done except: the first VPS deploy (one-time Docker/reverse-proxy
-setup plus wiring the `deploy-proxy.yml` GitHub Actions secrets — see
-`docs/VPS_DEPLOY.md`), and pushing the `vX.Y.Z` tag (needs the Chrome Web
-Store OAuth secrets and a first draft store listing — see
+Close the gaps above, in the order listed, then push the `vX.Y.Z` tag (the
+Chrome Web Store OAuth secrets and store listing are already in place — see
 `docs/CHROME_WEB_STORE_DEPLOY.md`).
