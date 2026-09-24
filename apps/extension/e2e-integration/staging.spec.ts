@@ -6,9 +6,16 @@
  * development plan calls out by name: the O*NET key never reaches the
  * browser, and the extension never talks to O*NET directly.
  */
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { test, expect } from './fixtures/extension';
 import { E2E_ONET_API_KEY, PROXY_PORT } from './fixtures/constants';
 import { completeShortAssessment } from '../e2e/fixtures/interestProfiler';
+
+// Read straight from the manifest rather than hardcoding the version string,
+// so a version bump alone (no code change) can't fail this test.
+const manifestPath = fileURLToPath(new URL('../public/manifest.json', import.meta.url));
+const EXTENSION_VERSION: string = JSON.parse(readFileSync(manifestPath, 'utf-8')).version;
 
 function sidePanelUrl(extensionId: string): string {
   return `chrome-extension://${extensionId}/src/sidepanel/index.html`;
@@ -138,7 +145,7 @@ test('Options page: donate link is real and About reads the real manifest', asyn
   await expect(page.getByRole('heading', { name: 'Support' })).toBeVisible();
 
   // Real chrome.runtime.getManifest() this time, not the jsdom-safe fallback.
-  await expect(page.getByText('0.1.0')).toBeVisible();
+  await expect(page.getByText(EXTENSION_VERSION)).toBeVisible();
 
   const donateLink = page.getByRole('link', { name: /support this project/i });
   await expect(donateLink).toHaveAttribute('href', /donate\.stripe\.com/);
