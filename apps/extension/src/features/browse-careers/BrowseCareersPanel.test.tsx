@@ -32,7 +32,7 @@ function listResult(overrides: Partial<CareerListResult> = {}): CareerListResult
     start: 1,
     end: 2,
     total: 2,
-    occupation: [
+    career: [
       career(),
       career({
         code: '15-1252.00',
