@@ -34,7 +34,7 @@ export interface MnmPaginatedResponse {
 
 /** Response of `GET /mnm/search` and `GET /mnm/careers/` (same shape). */
 export interface CareerSearchResult extends MnmPaginatedResponse {
-  occupation: CareerReference[];
+  career: CareerReference[];
 }
 
 /** Alias kept distinct so call sites can name intent (`listCareers` vs. `searchCareers`). */
@@ -93,9 +93,32 @@ export type RiasecKey = (typeof RIASEC_KEYS)[number];
 /** RIASEC scores, one number per interest area. */
 export type RiasecScores = Record<RiasecKey, number>;
 
-/** Response of `GET /mnm/interestprofiler/results`. */
+/**
+ * Response of `GET /mnm/interestprofiler/results`, as the client hands it
+ * back after parsing — O*NET's actual wire format nests each score inside a
+ * `result` array of `{code, score}` entries rather than returning these
+ * fields flat; the client flattens it into this shape.
+ */
 export interface InterestProfilerResults extends RiasecScores {
   job_zone?: number | undefined;
+}
+
+/** One RIASEC interest area entry as O*NET's `/mnm/interestprofiler/results` actually returns it. */
+export interface RawInterestProfilerResultEntry {
+  href: string;
+  code: string;
+  title: string;
+  description: string;
+  score: number;
+}
+
+/**
+ * The raw wire shape of `GET /mnm/interestprofiler/results`, before the
+ * client flattens it into `InterestProfilerResults`.
+ */
+export interface RawInterestProfilerResults {
+  careers: string;
+  result: RawInterestProfilerResultEntry[];
 }
 
 /** An occupation reference as returned by the Interest Profiler career matcher. */
@@ -119,10 +142,8 @@ export interface JobZone {
   svp_range?: string | undefined;
 }
 
-/** Response of `GET /mnm/interestprofiler/job_zones`. */
-export interface JobZonesResult {
-  job_zone: JobZone[];
-}
+/** Response of `GET /mnm/interestprofiler/job_zones` — a bare array, not wrapped in an envelope. */
+export type JobZonesResult = JobZone[];
 
 /** Whether a career reference carries O*NET's Bright Outlook tag. */
 export function isBrightOutlook(career: CareerReference): boolean {

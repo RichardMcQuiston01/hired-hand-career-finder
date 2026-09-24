@@ -15,8 +15,8 @@ vi.mock('../../lib/onetClient', () => ({
 
 const searchCareers = vi.mocked(onetClient.searchCareers);
 
-function makeResult(occupation: CareerSearchResult['occupation']): CareerSearchResult {
-  return { start: 1, end: 20, total: occupation.length, occupation };
+function makeResult(career: CareerSearchResult['career']): CareerSearchResult {
+  return { start: 1, end: 20, total: career.length, career };
 }
 
 describe('CareerSearchPanel', () => {

@@ -10,14 +10,14 @@ import type {
   CareerSearchResult,
   InterestProfilerCareersResult,
   InterestProfilerQuestionSet,
-  InterestProfilerResults,
+  RawInterestProfilerResults,
 } from '@hired-hand/shared';
 
 export const SEARCH_RESULTS: CareerSearchResult = {
   start: 1,
   end: 3,
   total: 3,
-  occupation: [
+  career: [
     {
       href: 'https://www.onetonline.org/link/summary/29-1141.00',
       code: '29-1141.00',
@@ -44,7 +44,7 @@ export const BROWSE_LIST: CareerListResult = {
   start: 1,
   end: 5,
   total: 5,
-  occupation: [
+  career: [
     {
       href: 'https://www.onetonline.org/link/summary/15-1252.00',
       code: BROWSE_CAREER_CODE,
@@ -137,14 +137,52 @@ export const INTEREST_PROFILER_QUESTIONS_SHORT: InterestProfilerQuestionSet = {
   })),
 };
 
-export const INTEREST_PROFILER_RESULTS: InterestProfilerResults = {
-  realistic: 8,
-  investigative: 15,
-  artistic: 6,
-  social: 20,
-  enterprising: 10,
-  conventional: 12,
-  job_zone: 4,
+export const INTEREST_PROFILER_RESULTS: RawInterestProfilerResults = {
+  careers: 'https://www.onetonline.org/link/interestprofiler/careers',
+  result: [
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/realistic',
+      code: 'realistic',
+      title: 'Realistic',
+      description: 'Realistic interest description.',
+      score: 8,
+    },
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/investigative',
+      code: 'investigative',
+      title: 'Investigative',
+      description: 'Investigative interest description.',
+      score: 15,
+    },
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/artistic',
+      code: 'artistic',
+      title: 'Artistic',
+      description: 'Artistic interest description.',
+      score: 6,
+    },
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/social',
+      code: 'social',
+      title: 'Social',
+      description: 'Social interest description.',
+      score: 20,
+    },
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/enterprising',
+      code: 'enterprising',
+      title: 'Enterprising',
+      description: 'Enterprising interest description.',
+      score: 10,
+    },
+    {
+      href: 'https://www.onetonline.org/link/interestprofiler/interests/conventional',
+      code: 'conventional',
+      title: 'Conventional',
+      description: 'Conventional interest description.',
+      score: 12,
+    },
+  ],
 };
 
 export const INTEREST_PROFILER_CAREERS: InterestProfilerCareersResult = {

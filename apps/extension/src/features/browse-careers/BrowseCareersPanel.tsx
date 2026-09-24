@@ -112,7 +112,7 @@ export function BrowseCareersPanel() {
 
       {state.status === 'ready' && (
         <ul className="divide-border-subtle mt-3 divide-y">
-          {state.result.occupation.map((career) => (
+          {state.result.career.map((career) => (
             <li key={career.code}>
               <button
                 type="button"
