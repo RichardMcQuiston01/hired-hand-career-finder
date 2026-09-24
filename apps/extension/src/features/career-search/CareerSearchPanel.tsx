@@ -55,7 +55,7 @@ export function CareerSearchPanel() {
         setState({
           status: 'success',
           keyword: trimmed,
-          results: result.occupation,
+          results: result.career,
           errorMessage: undefined,
         });
       })

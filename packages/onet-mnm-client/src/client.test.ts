@@ -26,7 +26,7 @@ describe('searchCareers', () => {
       start: 1,
       end: 20,
       total: 1,
-      occupation: [
+      career: [
         {
           href: 'https://example.test/mnm/careers/15-1252.00/',
           code: '15-1252.00',
@@ -60,7 +60,7 @@ describe('listCareers', () => {
       start: 1,
       end: 5,
       total: 5,
-      occupation: [
+      career: [
         {
           href: 'https://example.test/mnm/careers/15-1252.00/',
           code: '15-1252.00',
@@ -121,14 +121,60 @@ describe('getCareerDetail', () => {
 describe('Interest Profiler results/careers round trip', () => {
   it('fetches RIASEC results and then matched careers from those scores', async () => {
     const answers = '3'.repeat(30);
-    const results = {
+    const rawResults = {
+      careers: 'https://example.test/mnm/interestprofiler/careers',
+      result: [
+        {
+          href: 'https://example.test/x/realistic',
+          code: 'realistic',
+          title: 'Realistic',
+          description: '',
+          score: 12,
+        },
+        {
+          href: 'https://example.test/x/investigative',
+          code: 'investigative',
+          title: 'Investigative',
+          description: '',
+          score: 18,
+        },
+        {
+          href: 'https://example.test/x/artistic',
+          code: 'artistic',
+          title: 'Artistic',
+          description: '',
+          score: 9,
+        },
+        {
+          href: 'https://example.test/x/social',
+          code: 'social',
+          title: 'Social',
+          description: '',
+          score: 15,
+        },
+        {
+          href: 'https://example.test/x/enterprising',
+          code: 'enterprising',
+          title: 'Enterprising',
+          description: '',
+          score: 10,
+        },
+        {
+          href: 'https://example.test/x/conventional',
+          code: 'conventional',
+          title: 'Conventional',
+          description: '',
+          score: 8,
+        },
+      ],
+    };
+    const flattenedResults = {
       realistic: 12,
       investigative: 18,
       artistic: 9,
       social: 15,
       enterprising: 10,
       conventional: 8,
-      job_zone: 3,
     };
     const careers = {
       start: 1,
@@ -149,11 +195,11 @@ describe('Interest Profiler results/careers round trip', () => {
       const url = new URL(String(input));
       if (url.pathname === '/api/onet/mnm/interestprofiler/results') {
         expect(url.searchParams.get('answers')).toBe(answers);
-        return jsonResponse(results);
+        return jsonResponse(rawResults);
       }
       if (url.pathname === '/api/onet/mnm/interestprofiler/careers') {
-        expect(url.searchParams.get('realistic')).toBe(String(results.realistic));
-        expect(url.searchParams.get('zone')).toBe('3');
+        expect(url.searchParams.get('realistic')).toBe(String(flattenedResults.realistic));
+        expect(url.searchParams.get('zone')).toBeNull();
         return jsonResponse(careers);
       }
       throw new Error(`Unexpected request: ${url.pathname}`);
@@ -162,7 +208,7 @@ describe('Interest Profiler results/careers round trip', () => {
     const client = createOnetMnmClient({ baseUrl: BASE_URL, fetchImpl: fetchMock as typeof fetch });
 
     const riasec = await client.getInterestProfilerResults(answers);
-    expect(riasec).toEqual(results);
+    expect(riasec).toEqual(flattenedResults);
 
     const matches = await client.getInterestProfilerCareers({
       realistic: riasec.realistic,
@@ -208,15 +254,35 @@ describe('schema validation failures', () => {
     const malformed = {
       start: 1,
       end: 20,
-      // "total" is missing and "occupation" is not an array — should fail
+      // "total" is missing and "career" is not an array — should fail
       // careerSearchResultSchema rather than being returned as-is.
-      occupation: 'not-an-array',
+      career: 'not-an-array',
     };
     const fetchMock = vi.fn(async () => jsonResponse(malformed));
     const client = createOnetMnmClient({ baseUrl: BASE_URL, fetchImpl: fetchMock as typeof fetch });
 
     await expect(client.searchCareers({ keyword: 'software' })).rejects.toThrow(OnetClientError);
     await expect(client.searchCareers({ keyword: 'software' })).rejects.toMatchObject({
+      name: 'OnetClientError',
+      status: 502,
+    });
+  });
+
+  it('rejects an Interest Profiler results response missing a RIASEC score', async () => {
+    const missingConventional = {
+      careers: 'https://example.test/mnm/interestprofiler/careers',
+      result: [
+        { href: 'x', code: 'realistic', title: 'Realistic', description: '', score: 12 },
+        { href: 'x', code: 'investigative', title: 'Investigative', description: '', score: 18 },
+        { href: 'x', code: 'artistic', title: 'Artistic', description: '', score: 9 },
+        { href: 'x', code: 'social', title: 'Social', description: '', score: 15 },
+        { href: 'x', code: 'enterprising', title: 'Enterprising', description: '', score: 10 },
+      ],
+    };
+    const fetchMock = vi.fn(async () => jsonResponse(missingConventional));
+    const client = createOnetMnmClient({ baseUrl: BASE_URL, fetchImpl: fetchMock as typeof fetch });
+
+    await expect(client.getInterestProfilerResults('3'.repeat(30))).rejects.toMatchObject({
       name: 'OnetClientError',
       status: 502,
     });

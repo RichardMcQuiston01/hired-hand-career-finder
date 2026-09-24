@@ -6,6 +6,12 @@
  * response, not the logical shape of the data.
  */
 import { z } from 'zod';
+import {
+  RIASEC_KEYS,
+  type InterestProfilerResults,
+  type RawInterestProfilerResultEntry,
+  type RiasecScores,
+} from '@hired-hand/shared';
 
 export const careerReferenceTagsSchema = z
   .object({
@@ -27,7 +33,7 @@ export const mnmPaginatedResponseSchema = z.object({
 });
 
 export const careerSearchResultSchema = mnmPaginatedResponseSchema.extend({
-  occupation: z.array(careerReferenceSchema),
+  career: z.array(careerReferenceSchema),
 });
 
 /**
@@ -52,18 +58,41 @@ export const interestProfilerQuestionSetSchema = mnmPaginatedResponseSchema.exte
   question: z.array(interestProfilerQuestionSchema),
 });
 
-export const riasecScoresSchema = z.object({
-  realistic: z.number(),
-  investigative: z.number(),
-  artistic: z.number(),
-  social: z.number(),
-  enterprising: z.number(),
-  conventional: z.number(),
+const interestProfilerResultEntrySchema: z.ZodType<RawInterestProfilerResultEntry> = z.object({
+  href: z.string(),
+  code: z.string(),
+  title: z.string(),
+  description: z.string(),
+  score: z.number(),
 });
 
-export const interestProfilerResultsSchema = riasecScoresSchema.extend({
-  job_zone: z.number().optional(),
-});
+/**
+ * O*NET's actual `/mnm/interestprofiler/results` response nests each RIASEC
+ * score inside a `result` array of `{code, score}` entries (plus a
+ * `careers` follow-up URL we don't need) rather than returning flat fields —
+ * this validates that raw shape, then flattens it below into the
+ * `RiasecScores` shape the rest of the app expects.
+ */
+const rawInterestProfilerResultsSchema = z
+  .object({
+    careers: z.string(),
+    result: z.array(interestProfilerResultEntrySchema),
+  })
+  .refine((raw) => RIASEC_KEYS.every((key) => raw.result.some((entry) => entry.code === key)), {
+    message: 'Missing one or more RIASEC scores in the "result" array',
+  });
+
+export const interestProfilerResultsSchema = rawInterestProfilerResultsSchema.transform(
+  (raw): InterestProfilerResults => {
+    const scores = {} as RiasecScores;
+    for (const entry of raw.result) {
+      if ((RIASEC_KEYS as readonly string[]).includes(entry.code)) {
+        scores[entry.code as (typeof RIASEC_KEYS)[number]] = entry.score;
+      }
+    }
+    return scores;
+  },
+);
 
 export const careerMatchSchema = careerReferenceSchema.extend({
   fit: z.string().optional(),
@@ -83,6 +112,4 @@ export const jobZoneSchema = z.object({
   svp_range: z.string().optional(),
 });
 
-export const jobZonesResultSchema = z.object({
-  job_zone: z.array(jobZoneSchema),
-});
+export const jobZonesResultSchema = z.array(jobZoneSchema);
