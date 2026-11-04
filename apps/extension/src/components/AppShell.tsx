@@ -6,7 +6,7 @@ interface AppShellProps {
 }
 
 /** Stripe donate link, reused by the footer here and the Options Support section. */
-export const DONATE_URL = 'https://donate.stripe.com/00w5kD3Gj1Xo9v7gVOcs800';
+export const DONATE_URL = 'https://ko-fi.com/P1V529Z7ZP';
 
 /**
  * Minimal accessible page shell: skip link + landmark regions, styled with
