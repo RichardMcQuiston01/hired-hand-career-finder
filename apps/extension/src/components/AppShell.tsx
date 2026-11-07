@@ -5,7 +5,7 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-/** Stripe donate link, reused by the footer here and the Options Support section. */
+/** Ko-fi donate link, reused by the footer here and the Options Support section. */
 export const DONATE_URL = 'https://ko-fi.com/P1V529Z7ZP';
 
 /**

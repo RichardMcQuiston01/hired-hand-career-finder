@@ -21,7 +21,7 @@ describe('Options App', () => {
   it('renders the donate link and QR code in the Support section', () => {
     render(<App />);
 
-    const links = screen.getAllByRole('link', { name: /donate via stripe/i });
+    const links = screen.getAllByRole('link', { name: /donate via ko-fi/i });
     expect(links.length).toBeGreaterThan(0);
     for (const link of links) {
       expect(link).toHaveAttribute('href', DONATE_URL);
@@ -30,7 +30,7 @@ describe('Options App', () => {
       expect(link).toHaveAttribute('rel', expect.stringContaining('noreferrer'));
     }
 
-    const qrImage = screen.getByAltText('QR code to donate via Stripe');
+    const qrImage = screen.getByAltText('QR code to donate via Ko-fi');
     expect(qrImage).toBeInTheDocument();
     expect(qrImage).toHaveAttribute('src', '/donate-qr.svg');
   });
