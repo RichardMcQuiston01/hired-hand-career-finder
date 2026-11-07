@@ -44,9 +44,7 @@ if (bumpMajor) {
 
 const newVersion = `${major}.${minor}.${patch}`;
 const codename = major >= 1 ? version_names[major - 1] : undefined;
-const newVersionName = codename
-  ? `${major}.${minor} ${codename}`
-  : `${major}.${minor}`;
+const newVersionName = codename ? `${major}.${minor} ${codename}` : `${major}.${minor}`;
 
 manifest.version = newVersion;
 manifest.version_name = newVersionName;
