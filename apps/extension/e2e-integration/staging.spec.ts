@@ -148,5 +148,5 @@ test('Options page: donate link is real and About reads the real manifest', asyn
   await expect(page.getByText(EXTENSION_VERSION)).toBeVisible();
 
   const donateLink = page.getByRole('link', { name: /support this project/i });
-  await expect(donateLink).toHaveAttribute('href', /donate\.stripe\.com/);
+  await expect(donateLink).toHaveAttribute('href', /ko-fi\.com\/P1V529Z7ZP/);
 });

@@ -13,7 +13,7 @@ concurrency:
 jobs:
   build:
     name: Lint, typecheck, test, build, a11y e2e, staging integration e2e
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

@@ -64,13 +64,13 @@ export function App() {
           rel="noopener noreferrer"
           className="bg-accent-600 text-on-accent border-accent-700 mt-3 inline-block rounded border px-3 py-1.5 text-sm font-medium no-underline"
         >
-          Donate via Stripe
+          Donate via Ko-fi
           <span className="sr-only"> (opens in new tab)</span>
         </a>
         <p className="mt-3">
           <img
             src="/donate-qr.svg"
-            alt="QR code to donate via Stripe"
+            alt="QR code to donate via Ko-fi"
             width={160}
             height={160}
             className="rounded"
